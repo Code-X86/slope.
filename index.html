@@ -131,7 +131,7 @@
 
     .games {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr));
       gap: 22px;
       margin-bottom: 34px;
     }
@@ -148,7 +148,7 @@
       transition: transform .2s ease, box-shadow .2s ease;
     }
 
-    .game-card[data-id="cybr"] { --card-accent: var(--amber); }
+    .game-card[data-id="pong"] { --card-accent: #30d8ff; }
 
     .game-card:hover {
       transform: translateY(-3px);
@@ -188,31 +188,73 @@
       transform: rotate(25deg);
     }
 
-    .cybr-art {
+    .pong-art {
       background:
-        linear-gradient(rgba(5, 4, 2, .15), rgba(5, 4, 2, .6)),
-        repeating-linear-gradient(0deg, transparent 0 3px, rgba(255, 174, 13, .09) 4px),
-        radial-gradient(circle at 50% 60%, rgba(255, 166, 0, .45), transparent 37%),
-        #160e02;
+        linear-gradient(90deg, transparent 49.5%, rgba(48, 216, 255, .36) 49.5% 50.5%, transparent 50.5%),
+        repeating-linear-gradient(0deg, transparent 0 17px, rgba(48, 216, 255, .08) 18px),
+        radial-gradient(circle at 50% 50%, rgba(48, 216, 255, .18), transparent 45%),
+        #020a10;
     }
 
-    .cybr-art::before {
-      content: "CYBR\A ARCADE";
+    .pong-art::before,
+    .pong-art::after {
+      content: "";
       position: absolute;
-      inset: 20% 18%;
+      top: 31%;
+      width: 3.5%;
+      height: 38%;
+      border-radius: 3px;
+      background: #eafcff;
+      box-shadow: 0 0 16px rgba(48, 216, 255, .85);
+    }
+
+    .pong-art::before { left: 13%; }
+    .pong-art::after { right: 13%; }
+
+    .pong-ball {
+      position: absolute;
+      left: 48%;
+      top: 43%;
+      width: 6%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: #30d8ff;
+      box-shadow: 0 0 18px #30d8ff;
+    }
+
+    .game-card[data-id="wordle"] { --card-accent: #ffd166; }
+
+    .wordle-art {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: linear-gradient(180deg, #07121a 0%, #081721 100%);
+    }
+    .wordle-art .tile {
+      width: 12%;
+      aspect-ratio: 1;
+      background: #222;
+      border-radius: 4px;
+      box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2);
+    }
+
+    .game-card[data-id="tictactoe"] { --card-accent: #6ee7b7; }
+    .tictactoe-art {
       display: grid;
-      place-items: center;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      align-items: center;
+      justify-items: center;
       padding: 12px;
-      border: 3px solid #9a6300;
-      background: #080704;
-      color: #ffd13a;
-      font: 900 clamp(22px, 4vw, 48px)/.92 ui-monospace, monospace;
-      letter-spacing: .08em;
-      white-space: pre;
-      text-align: center;
-      text-shadow: 0 0 10px #ff9d00;
-      box-shadow: 0 0 30px rgba(255, 153, 0, .35), inset 0 0 30px rgba(255, 153, 0, .16);
-      transform: perspective(500px) rotateX(-5deg);
+      background: linear-gradient(180deg, #081217 0%, #071219 100%);
+    }
+    .tictactoe-art .cell {
+      width: 22%;
+      aspect-ratio: 1;
+      background: #08121a;
+      border-radius: 6px;
+      border: 2px solid rgba(255,255,255,0.03);
     }
 
     .card-bar {
@@ -252,11 +294,16 @@
     }
 
     .player {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
-      border: 1px solid var(--line);
-      border-radius: 14px;
+      border: 0;
+      border-radius: 0;
       background: #03060b;
-      box-shadow: 0 24px 70px rgba(0, 0, 0, .35);
+      box-shadow: none;
     }
 
     .player[hidden] { display: none; }
@@ -290,8 +337,25 @@
     .tool-button:hover { border-color: var(--line); background: #151f2e; color: var(--text); }
     .tool-button svg { width: 17px; height: 17px; }
 
-    .stage { position: relative; height: min(68vh, 760px); min-height: 480px; background: #000; }
+    .stage { position: relative; flex: 1; min-height: 0; background: #000; }
     .stage iframe { display: block; width: 100%; height: 100%; border: 0; background: #000; }
+
+    /* Centered, non-movable window mode */
+    .player.windowed {
+      inset: auto;
+      top: 50%;
+      left: 50%;
+      width: min(1100px, 94vw);
+      height: min(80vh, 720px);
+      transform: translate(-50%, -50%);
+      border-radius: 12px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+      max-width: calc(100% - 32px);
+    }
+    .player.windowed .stage { min-height: 0; }
+    .player.windowed .stage iframe { border-radius: 8px; }
+
+    
 
     .server-message {
       display: grid;
@@ -356,7 +420,7 @@
       .page-head { align-items: start; flex-direction: column; }
       .tool-button span { display: none; }
       .tool-button { padding: 9px; }
-      .stage { min-height: 420px; height: 72vh; }
+      .stage { min-height: 0; }
     }
   </style>
 </head>
@@ -399,17 +463,48 @@
           </div>
         </article>
 
-        <article class="game-card" data-id="cybr">
-          <button class="preview cybr-art launch" type="button" aria-label="Play CYBR Arcade"></button>
+        <article class="game-card" data-id="pong">
+          <button class="preview pong-art launch" type="button" aria-label="Play Pong"><span class="pong-ball"></span></button>
           <div class="card-bar">
             <div class="card-copy">
-              <span class="card-title">CYBR Arcade</span>
-              <span class="card-detail">A collection of quick arcade games</span>
+              <span class="card-title">Pong vs AI</span>
+              <span class="card-detail">First to 7 wins</span>
             </div>
-            <button class="icon-button favorite" type="button" aria-label="Favorite CYBR Arcade"></button>
-            <button class="icon-button play-button launch" type="button" aria-label="Play CYBR Arcade"></button>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Pong"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Pong"></button>
           </div>
         </article>
+
+        <article class="game-card" data-id="wordle">
+          <button class="preview wordle-art launch" type="button" aria-label="Play Wordle">
+            <span class="tile"></span><span class="tile"></span><span class="tile"></span><span class="tile"></span><span class="tile"></span>
+          </button>
+          <div class="card-bar">
+            <div class="card-copy">
+              <span class="card-title">Wordle</span>
+              <span class="card-detail">Guess the word — daily puzzle</span>
+            </div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Wordle"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Wordle"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="tictactoe">
+          <button class="preview tictactoe-art launch" type="button" aria-label="Play Tic Tac Toe">
+            <span class="cell"></span><span class="cell"></span><span class="cell"></span>
+            <span class="cell"></span><span class="cell"></span><span class="cell"></span>
+            <span class="cell"></span><span class="cell"></span><span class="cell"></span>
+          </button>
+          <div class="card-bar">
+            <div class="card-copy">
+              <span class="card-title">Tic Tac Toe</span>
+              <span class="card-detail">Classic 3×3 paper-and-pencil game</span>
+            </div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Tic Tac Toe"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Tic Tac Toe"></button>
+          </div>
+        </article>
+
       </section>
 
       <div class="empty" id="empty">No favorites yet. Use the star on a game to add one.</div>
@@ -423,8 +518,11 @@
           <button class="tool-button" id="reloadButton" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11a8 8 0 1 0 1 4m-1-4V5m0 6h-6"/></svg><span>Reload</span>
           </button>
-          <button class="tool-button" id="fullscreenButton" type="button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H3v5m13-5h5v5M8 21H3v-5m13 5h5v-5"/></svg><span>Fullscreen</span>
+          <button class="tool-button" id="fullscreenButton" type="button" aria-label="Toggle fullscreen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg><span>Fullscreen</span>
+          </button>
+          <button class="tool-button" id="windowButton" type="button" aria-label="Toggle window">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="14" rx="2" ry="2"/><path d="M7 21v-4h10v4"/></svg><span>Window</span>
           </button>
         </div>
         <div class="stage" id="stage"></div>
@@ -434,8 +532,10 @@
 
   <script>
     const games = {
-      slope: { title: "Slope", src: "slope/index.html" },
-      cybr: { title: "CYBR Arcade", src: "refrence/cybr-arcade.html" }
+      slope: { title: "Slope", src: "slope/tee/index.html" },
+      pong: { title: "Pong vs AI", src: "pong/index.html" },
+      wordle: { title: "Wordle", src: "wordle/index.html" },
+      tictactoe: { title: "Tic Tac Toe", src: "tictactoe/index.html" }
     };
     const star = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg>';
     const play = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 5 11 7-11 7V5Z"/></svg>';
@@ -465,7 +565,7 @@
       document.querySelectorAll(".nav-button").forEach(button => button.classList.toggle("active", button.dataset.view === activeView));
     }
 
-    function launch(id) {
+    function launch(id, requestBrowserFullscreen = false) {
       currentGame = id;
       const game = games[id];
       playerTitle.textContent = game.title;
@@ -473,7 +573,7 @@
       if (id === "slope" && location.protocol === "file:") {
         stage.innerHTML = '<div class="server-message"><div><h2>Slope needs a local server</h2><p>Browsers block Unity build files when this page is opened directly from disk. Run this command in the website folder, then open <strong>http://localhost:8000</strong>.</p><code>python3 -m http.server 8000</code></div></div>';
         player.hidden = false;
-        player.scrollIntoView({ behavior: "smooth", block: "start" });
+        document.body.style.overflow = "hidden";
         return;
       }
       const frame = document.createElement("iframe");
@@ -482,12 +582,48 @@
       frame.setAttribute("allowfullscreen", "");
       frame.setAttribute("sandbox", "allow-scripts allow-same-origin");
       stage.append(frame);
+      // adjust player size to iframe content when available
+      frame.addEventListener('load', () => {
+        adjustPlayerToIframe(frame);
+      });
       player.hidden = false;
-      player.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.body.style.overflow = "hidden";
+      if (requestBrowserFullscreen && player.requestFullscreen) player.requestFullscreen().catch(() => {});
+    }
+
+    function adjustPlayerToIframe(frame) {
+      try {
+        const doc = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
+        if (!doc) return;
+        const body = doc.body || {};
+        const html = doc.documentElement || {};
+        const contentW = Math.max(html.scrollWidth || 0, body.scrollWidth || 0, html.clientWidth || 0);
+        const contentH = Math.max(html.scrollHeight || 0, body.scrollHeight || 0, html.clientHeight || 0);
+        const paddingW = 40; // leave some room for chrome
+        const paddingH = 80;
+        const maxW = Math.min(1100, window.innerWidth - 32);
+        const maxH = Math.min(window.innerHeight * 0.8, 720);
+        const minW = 360;
+        const minH = 240;
+        const targetW = Math.round(Math.min(maxW, Math.max(minW, contentW + paddingW)));
+        const targetH = Math.round(Math.min(maxH, Math.max(minH, contentH + paddingH)));
+        // apply sizing only when in windowed mode
+        if (player.classList.contains('windowed')) {
+          player.style.width = targetW + 'px';
+          player.style.height = targetH + 'px';
+          player.style.left = '50%';
+          player.style.top = '50%';
+          player.style.transform = 'translate(-50%, -50%)';
+        }
+        // notify iframe content to reflow
+        if (frame.contentWindow) frame.contentWindow.dispatchEvent(new Event('resize'));
+      } catch (err) {
+        // cross-origin or other access error — silently ignore
+      }
     }
 
     cards.forEach(card => {
-      card.querySelectorAll(".launch").forEach(button => button.addEventListener("click", () => launch(card.dataset.id)));
+      card.querySelectorAll(".launch").forEach(button => button.addEventListener("click", () => launch(card.dataset.id, false)));
       card.querySelector(".favorite").addEventListener("click", () => {
         favorites.has(card.dataset.id) ? favorites.delete(card.dataset.id) : favorites.add(card.dataset.id);
         localStorage.setItem("mini-play-favorites", JSON.stringify([...favorites]));
@@ -504,6 +640,21 @@
       player.hidden = true;
       stage.replaceChildren();
       currentGame = null;
+      document.body.style.overflow = "";
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+      // clear windowed state and any inline positioning
+      player.classList.remove('windowed');
+      player.style.left = '';
+      player.style.top = '';
+      player.style.transform = '';
+      player.style.width = '';
+      player.style.height = '';
+      // reset window button UI if present
+      if (windowButton) {
+        windowButton.classList.remove('on');
+        const lbl = windowButton.querySelector('span');
+        if (lbl) lbl.textContent = 'Window';
+      }
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
@@ -512,10 +663,60 @@
       if (frame) frame.src = games[currentGame].src;
     });
 
-    document.querySelector("#fullscreenButton").addEventListener("click", async () => {
-      if (!document.fullscreenElement) await player.requestFullscreen();
-      else await document.exitFullscreen();
-    });
+    const fullscreenButton = document.querySelector("#fullscreenButton");
+    const windowButton = document.querySelector("#windowButton");
+    const playerBar = document.querySelector('.player-bar');
+    if (fullscreenButton) {
+      fullscreenButton.addEventListener("click", () => {
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        } else if (player.requestFullscreen) {
+          player.requestFullscreen().catch(() => {});
+        }
+      });
+
+      document.addEventListener("fullscreenchange", () => {
+        const isFs = !!document.fullscreenElement;
+        fullscreenButton.classList.toggle("on", isFs);
+        const label = fullscreenButton.querySelector("span");
+        if (label) label.textContent = isFs ? "Exit" : "Fullscreen";
+        // exiting fullscreen should also clear windowed state
+        if (!isFs) {
+          player.classList.remove('windowed');
+        }
+      });
+    }
+
+    if (windowButton) {
+      windowButton.addEventListener('click', () => {
+        const isWindow = player.classList.toggle('windowed');
+        if (isWindow && document.fullscreenElement) document.exitFullscreen().catch(() => {});
+        player.hidden = false;
+        document.body.style.overflow = 'hidden';
+        const frame = stage.querySelector('iframe');
+        if (isWindow) {
+          player.style.left = '50%';
+          player.style.top = '50%';
+          player.style.transform = 'translate(-50%, -50%)';
+          // size to content if possible
+          if (frame) adjustPlayerToIframe(frame);
+        } else {
+          // restore default layout and remove inline sizing
+          player.style.left = '';
+          player.style.top = '';
+          player.style.transform = '';
+          player.style.width = '';
+          player.style.height = '';
+        }
+        windowButton.classList.toggle('on', isWindow);
+        const lbl = windowButton.querySelector('span');
+        if (lbl) lbl.textContent = isWindow ? 'Exit' : 'Window';
+      });
+    }
+
+    
+
+    
 
     updateView();
     const linkedGame = location.hash.slice(1);
