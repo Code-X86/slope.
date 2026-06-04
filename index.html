@@ -105,6 +105,23 @@
       box-shadow: 0 0 12px rgba(169, 255, 50, .7);
     }
 
+    .playtime {
+      margin: 18px 10px 0;
+      color: #74839a;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      line-height: 1.6;
+      text-transform: uppercase;
+    }
+
+    .playtime strong {
+      display: block;
+      color: var(--text);
+      font-size: 12px;
+      letter-spacing: .03em;
+    }
+
     main {
       width: min(1400px, calc(100% - var(--sidebar)));
       margin-left: var(--sidebar);
@@ -531,7 +548,7 @@
       .brand { margin: 0 auto 0 0; font-size: 20px; }
       .nav { display: flex; }
       .nav-button { width: auto; padding: 9px; }
-      .nav-button span, .side-note { display: none; }
+      .nav-button span, .side-note, .playtime { display: none; }
       main { width: 100%; margin: 0; padding: 30px 18px 36px; }
     }
 
@@ -561,6 +578,7 @@
         </button>
       </nav>
       <div class="side-note"><span></span>Ready to play</div>
+      <div class="playtime">Playtime<strong id="playtime">0 days · 0 hours · 0 minutes</strong></div>
     </aside>
 
     <main>
@@ -723,6 +741,10 @@
     const play = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 5 11 7-11 7V5Z"/></svg>';
     const favoriteCookie = document.cookie.split("; ").find(cookie => cookie.startsWith("favorites="));
     const favorites = new Set((favoriteCookie ? favoriteCookie.slice("favorites=".length) : "").split(",").filter(id => /^\d+$/.test(id)));
+    const timeCookie = document.cookie.split("; ").find(cookie => cookie.startsWith("time="));
+    const savedTime = (timeCookie ? timeCookie.slice("time=".length) : "0,0,0").split(",").map(Number);
+    let savedPlayMinutes = Math.max(0, (savedTime[0] || 0) * 1440 + (savedTime[1] || 0) * 60 + (savedTime[2] || 0));
+    let playSessionStartedAt = null;
     const cards = [...document.querySelectorAll(".game-card")];
     const player = document.querySelector("#player");
     const stage = document.querySelector("#stage");
@@ -736,6 +758,36 @@
     function saveFavorites() {
       const value = [...favorites].sort((a, b) => Number(a) - Number(b)).join(",");
       document.cookie = `favorites=${value}; path=/; max-age=31536000; SameSite=Lax`;
+    }
+
+    function currentPlayMinutes() {
+      const sessionMinutes = playSessionStartedAt === null ? 0 : Math.floor((Date.now() - playSessionStartedAt) / 60000);
+      return savedPlayMinutes + sessionMinutes;
+    }
+
+    function formatPlaytime(totalMinutes) {
+      const days = Math.floor(totalMinutes / 1440);
+      const hours = Math.floor(totalMinutes % 1440 / 60);
+      const minutes = totalMinutes % 60;
+      return { days, hours, minutes };
+    }
+
+    function savePlaytime() {
+      const time = formatPlaytime(currentPlayMinutes());
+      document.cookie = `time=${time.days},${time.hours},${time.minutes}; path=/; max-age=31536000; SameSite=Lax`;
+      document.querySelector("#playtime").textContent = `${time.days} days · ${time.hours} hours · ${time.minutes} minutes`;
+    }
+
+    function startPlaytime() {
+      if (playSessionStartedAt === null) playSessionStartedAt = Date.now();
+      savePlaytime();
+    }
+
+    function stopPlaytime() {
+      if (playSessionStartedAt === null) return;
+      savedPlayMinutes = currentPlayMinutes();
+      playSessionStartedAt = null;
+      savePlaytime();
     }
 
     function updateView() {
@@ -755,6 +807,7 @@
 
     function launch(id, requestBrowserFullscreen = false) {
       currentGame = id;
+      startPlaytime();
       const game = games[id];
       playerTitle.textContent = game.title;
       stage.replaceChildren();
@@ -833,6 +886,7 @@
     }));
 
     document.querySelector("#backButton").addEventListener("click", () => {
+      stopPlaytime();
       player.hidden = true;
       stage.replaceChildren();
       currentGame = null;
@@ -921,6 +975,9 @@
 
     
 
+    setInterval(savePlaytime, 30000);
+    window.addEventListener("pagehide", stopPlaytime);
+    savePlaytime();
     updateView();
     const linkedGame = location.hash.slice(1);
     if (games[linkedGame]) launch(linkedGame);
