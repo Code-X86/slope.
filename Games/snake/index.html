@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Neon Snake</title>
+  <style>
+    :root{color-scheme:dark;--green:#9cff2e;--muted:#85939f;--line:#263b35}
+    *{box-sizing:border-box}html,body{height:100%;margin:0;overflow:hidden}
+    body{display:grid;place-items:center;padding:18px;background:radial-gradient(circle at 50% 20%,#12301f,#030908 55%);font-family:system-ui;color:#f4fff7}
+    main{width:min(100%,1000px);height:min(100%,760px);display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:10px}
+    header,footer{display:flex;align-items:center;justify-content:space-between;gap:15px}.brand{font-size:27px;font-weight:950;color:var(--green);text-shadow:0 0 18px #66ff66}
+    .stats{display:flex;gap:28px;color:var(--muted);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.12em}.stats b{display:block;color:white;text-align:center;font-size:15px}
+    .board{position:relative;min-height:0;border:1px solid var(--line);border-radius:13px;overflow:hidden;background:#030a08}
+    canvas{display:block;width:100%;height:100%}.overlay{position:absolute;inset:0;display:none;place-items:center;background:#020806cc;backdrop-filter:blur(6px)}.overlay.show{display:grid}
+    .menu{width:min(90%,460px);padding:32px;border:1px solid var(--line);border-radius:15px;background:#07110e;text-align:center}h1{margin:0;color:var(--green);font-size:58px;letter-spacing:-.07em}.menu p{color:var(--muted);line-height:1.5}
+    button{padding:11px 17px;border:1px solid var(--line);border-radius:8px;background:#0c1814;color:#a9b9b0;font-weight:800;cursor:pointer}button:hover{border-color:var(--green);color:var(--green)}.primary{width:100%;margin-top:10px;background:var(--green);color:#061006;border-color:var(--green)}
+    footer span{color:var(--muted);font-size:11px}
+  </style>
+</head>
+<body><main>
+  <header><div class="brand">NEON SNAKE</div><div class="stats"><span>Score<b id="score">0</b></span><span>Stage<b id="stage">1</b></span><span>Best<b id="best">0</b></span></div></header>
+  <section class="board"><canvas id="canvas" width="900" height="600"></canvas><div class="overlay show" id="overlay"><div class="menu"><h1 id="title">Snake</h1><p id="message">Eat the glowing food. Every five points adds obstacles and increases speed.</p><button class="primary" id="start">Start game</button></div></div></section>
+  <footer><span>Move with arrow keys or WASD · P pauses</span><button id="pause">Pause</button></footer>
+</main><script>
+const canvas=document.querySelector("#canvas"),ctx=canvas.getContext("2d"),overlay=document.querySelector("#overlay"),cols=30,rows=20,cell=30;
+let snake,food,dir,nextDir,obstacles,score,stage,running=false,paused=false,last=0,step=140,best=Number(localStorage.getItem("snake-best")||0);
+document.querySelector("#best").textContent=best;
+function randomCell(){return{x:Math.floor(Math.random()*cols),y:Math.floor(Math.random()*rows)}}
+function occupied(p){return snake.some(s=>s.x===p.x&&s.y===p.y)||obstacles.some(o=>o.x===p.x&&o.y===p.y)}
+function placeFood(){do food=randomCell();while(occupied(food))}
+function addObstacles(){for(let i=0;i<stage+1;i++){let p;do p=randomCell();while(occupied(p)||Math.abs(p.x-snake[0].x)<4);obstacles.push(p)}}
+function resetState(){snake=[{x:10,y:10},{x:9,y:10},{x:8,y:10}];dir=nextDir={x:1,y:0};obstacles=[];score=0;stage=1;step=140;placeFood()}
+function start(){resetState();running=true;paused=false;last=performance.now();title.textContent="Snake";message.textContent="Eat the glowing food. Every five points adds obstacles and increases speed.";overlay.classList.remove("show");updateHud()}
+function updateHud(){scoreEl.textContent=score;stageEl.textContent=stage;bestEl.textContent=best}
+const scoreEl=document.querySelector("#score"),stageEl=document.querySelector("#stage"),bestEl=document.querySelector("#best");
+function end(){running=false;best=Math.max(best,score);localStorage.setItem("snake-best",best);updateHud();title.textContent="Game over";message.textContent=`Score ${score}. You reached stage ${stage}.`;startBtn.textContent="Play again";overlay.classList.add("show")}
+function tick(){if(!running||paused)return;dir=nextDir;const h={x:snake[0].x+dir.x,y:snake[0].y+dir.y};if(h.x<0||h.x>=cols||h.y<0||h.y>=rows||occupied(h)){end();return}snake.unshift(h);if(h.x===food.x&&h.y===food.y){score++;if(score%5===0){stage++;step=Math.max(60,step-12);addObstacles()}placeFood();updateHud()}else snake.pop()}
+function draw(){ctx.fillStyle="#030a08";ctx.fillRect(0,0,900,600);ctx.strokeStyle="#10271f";for(let x=0;x<=900;x+=cell){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,600);ctx.stroke()}for(let y=0;y<=600;y+=cell){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(900,y);ctx.stroke()}
+ctx.shadowBlur=15;if(food){ctx.shadowColor="#ff477e";ctx.fillStyle="#ff477e";ctx.beginPath();ctx.arc(food.x*cell+15,food.y*cell+15,9,0,Math.PI*2);ctx.fill()}ctx.shadowColor="#ffb000";ctx.fillStyle="#ffb000";(obstacles||[]).forEach(o=>ctx.fillRect(o.x*cell+4,o.y*cell+4,22,22));ctx.shadowColor="#9cff2e";(snake||[]).forEach((s,i)=>{ctx.fillStyle=i?"#66d833":"#d9ffb0";ctx.fillRect(s.x*cell+3,s.y*cell+3,24,24)});ctx.shadowBlur=0}
+function loop(t){if(t-last>=step){last=t;tick()}draw();requestAnimationFrame(loop)}
+const title=document.querySelector("#title"),message=document.querySelector("#message"),startBtn=document.querySelector("#start");startBtn.onclick=start;document.querySelector("#pause").onclick=e=>{if(running){paused=!paused;e.target.textContent=paused?"Resume":"Pause"}};
+addEventListener("keydown",e=>{const m={arrowup:[0,-1],w:[0,-1],arrowdown:[0,1],s:[0,1],arrowleft:[-1,0],a:[-1,0],arrowright:[1,0],d:[1,0]}[e.key.toLowerCase()];if(m&&dir&&!(m[0]===-dir.x&&m[1]===-dir.y)){nextDir={x:m[0],y:m[1]};e.preventDefault()}if(e.key.toLowerCase()==="p")document.querySelector("#pause").click()});resetState();requestAnimationFrame(loop);
+</script></body></html>

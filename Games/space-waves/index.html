@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Space Waves</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #030611; color: #ecf7ff; font-family: Inter, system-ui, sans-serif; overflow: hidden; }
+    .wrap { width: min(1040px, 96vw); }
+    .hud { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    h1 { margin: 0 auto 0 0; font-size: clamp(28px, 4vw, 48px); letter-spacing: -.05em; }
+    .pill { padding: 9px 12px; border: 1px solid rgba(255,255,255,.14); border-radius: 999px; background: rgba(255,255,255,.07); font-weight: 900; }
+    canvas { width: 100%; aspect-ratio: 16 / 9; display: block; border: 1px solid rgba(70, 220, 255, .36); border-radius: 18px; background: #030611; box-shadow: 0 24px 80px rgba(0,0,0,.52); }
+    .help { margin: 12px 0 0; color: #8da7bd; font-weight: 700; }
+    button { padding: 10px 13px; border: 0; border-radius: 10px; background: #36e7ff; color: #031018; font-weight: 950; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="hud">
+      <h1>Space Waves</h1>
+      <div class="pill">Score: <span id="score">0</span></div>
+      <div class="pill">Best: <span id="best">0</span></div>
+      <button id="restart">Restart</button>
+    </div>
+    <canvas id="game" width="960" height="540"></canvas>
+    <p class="help">Hold Space, Arrow Up, or W to rise. Release to dive. Dodge the wave gates.</p>
+  </main>
+  <script>
+    const canvas = document.querySelector("#game"), ctx = canvas.getContext("2d");
+    const scoreEl = document.querySelector("#score"), bestEl = document.querySelector("#best");
+    const keys = new Set();
+    let best = Number(localStorage.getItem("spaceWavesBest") || 0);
+    let ship, gates, particles, score, speed, running, lastTime;
+    bestEl.textContent = best;
+    function reset() {
+      ship = { x: 150, y: canvas.height / 2, vy: 0, r: 12 };
+      gates = []; particles = []; score = 0; speed = 210; running = true; lastTime = performance.now();
+      for (let i = 0; i < 5; i++) addGate(canvas.width + i * 230);
+    }
+    function addGate(x) {
+      const gap = Math.max(118, 190 - score * 2);
+      const center = 90 + Math.random() * (canvas.height - 180);
+      gates.push({ x, w: 64, top: center - gap / 2, bottom: center + gap / 2, passed: false });
+    }
+    function pressed() { return keys.has(" ") || keys.has("ArrowUp") || keys.has("w") || keys.has("W"); }
+    function update(dt) {
+      if (!running) return;
+      ship.vy += (pressed() ? -760 : 640) * dt;
+      ship.vy *= .992;
+      ship.y += ship.vy * dt;
+      speed += dt * 7;
+      gates.forEach(g => {
+        g.x -= speed * dt;
+        if (!g.passed && g.x + g.w < ship.x) { g.passed = true; score++; scoreEl.textContent = score; }
+        const inX = ship.x + ship.r > g.x && ship.x - ship.r < g.x + g.w;
+        if (inX && (ship.y - ship.r < g.top || ship.y + ship.r > g.bottom)) crash();
+      });
+      if (ship.y < ship.r || ship.y > canvas.height - ship.r) crash();
+      gates = gates.filter(g => g.x + g.w > -20);
+      while (gates.length < 6) addGate(gates.at(-1).x + 220 + Math.random() * 90);
+      particles.push({ x: ship.x - 16, y: ship.y, life: 1 });
+      particles.forEach(p => { p.x -= speed * dt; p.life -= dt * 2; });
+      particles = particles.filter(p => p.life > 0);
+    }
+    function crash() {
+      running = false;
+      best = Math.max(best, score);
+      localStorage.setItem("spaceWavesBest", best);
+      bestEl.textContent = best;
+    }
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const grd = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      grd.addColorStop(0, "#07152e"); grd.addColorStop(1, "#030611");
+      ctx.fillStyle = grd; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = "rgba(54,231,255,.13)";
+      for (let x = -40; x < canvas.width; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 170, canvas.height); ctx.stroke(); }
+      gates.forEach(g => {
+        ctx.fillStyle = "#ff3eb5";
+        ctx.shadowBlur = 18; ctx.shadowColor = "#ff3eb5";
+        ctx.fillRect(g.x, 0, g.w, g.top);
+        ctx.fillRect(g.x, g.bottom, g.w, canvas.height - g.bottom);
+        ctx.shadowBlur = 0;
+      });
+      particles.forEach(p => { ctx.globalAlpha = p.life; ctx.fillStyle = "#36e7ff"; ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill(); });
+      ctx.globalAlpha = 1;
+      ctx.save(); ctx.translate(ship.x, ship.y); ctx.rotate(Math.max(-.7, Math.min(.7, ship.vy / 500)));
+      ctx.fillStyle = "#a9ff32"; ctx.shadowBlur = 20; ctx.shadowColor = "#a9ff32";
+      ctx.beginPath(); ctx.moveTo(18, 0); ctx.lineTo(-14, -12); ctx.lineTo(-7, 0); ctx.lineTo(-14, 12); ctx.closePath(); ctx.fill();
+      ctx.restore(); ctx.shadowBlur = 0;
+      if (!running) {
+        ctx.fillStyle = "rgba(0,0,0,.56)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.font = "900 52px system-ui"; ctx.fillText("WAVE CRASH", canvas.width / 2, canvas.height / 2 - 10);
+        ctx.font = "800 20px system-ui"; ctx.fillText("Press Restart or Space", canvas.width / 2, canvas.height / 2 + 30);
+      }
+    }
+    function loop(now) {
+      const dt = Math.min(.033, (now - lastTime) / 1000); lastTime = now;
+      update(dt); draw(); requestAnimationFrame(loop);
+    }
+    addEventListener("keydown", e => { keys.add(e.key); if (!running && (e.key === " " || e.key === "ArrowUp")) reset(); if ([" ", "ArrowUp"].includes(e.key)) e.preventDefault(); });
+    addEventListener("keyup", e => keys.delete(e.key));
+    document.querySelector("#restart").addEventListener("click", reset);
+    reset(); requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

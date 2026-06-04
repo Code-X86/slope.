@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pong vs AI</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #02070c;
+      --panel: #08121c;
+      --line: #1d4050;
+      --cyan: #30d8ff;
+      --text: #f3fbff;
+      --muted: #8ca9b6;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; min-height: 100%; }
+
+    body {
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 50% 20%, rgba(48, 216, 255, .12), transparent 42%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, sans-serif;
+    }
+
+    .game {
+      width: min(100%, 1000px);
+      display: grid;
+      gap: 14px;
+    }
+
+    .topbar, .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    h1 { margin: 0; font-size: clamp(20px, 4vw, 30px); letter-spacing: -.04em; }
+    .hint { color: var(--muted); font-size: 12px; }
+
+    button {
+      border: 1px solid transparent;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--muted);
+      font: 700 12px/1 system-ui, sans-serif;
+      cursor: pointer;
+    }
+
+    button:hover, button.active { border-color: var(--cyan); color: var(--cyan); }
+
+    .board {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: 0 22px 60px rgba(0, 0, 0, .4), 0 0 25px rgba(48, 216, 255, .08);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 9;
+      background: #02080d;
+      touch-action: none;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 20px;
+      background: rgba(2, 7, 12, .72);
+      backdrop-filter: blur(5px);
+      text-align: center;
+    }
+
+    .overlay.show { display: grid; }
+    .overlay h2 { margin: 0 0 8px; font-size: clamp(28px, 6vw, 54px); }
+    .overlay p { margin: 0 0 18px; color: var(--muted); }
+    .overlay button, .controls button {
+      padding: 11px 16px;
+      border-color: var(--line);
+      background: var(--panel);
+    }
+
+    .scoreline {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 10px; align-content: start; }
+      .topbar { align-items: start; }
+      .hint { width: 100%; }
+      .controls { justify-content: center; }
+      .scoreline { width: 100%; text-align: center; }
+      .controls div { display: flex; gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="game">
+    <header class="topbar">
+      <div>
+        <h1>Pong vs AI</h1>
+        <div class="hint">Move with W/S, arrow keys, mouse, or touch</div>
+      </div>
+    </header>
+
+    <section class="board" id="board">
+      <canvas id="canvas" width="960" height="540" aria-label="Pong game"></canvas>
+      <div class="overlay show" id="overlay">
+        <div>
+          <h2 id="result">Pong</h2>
+          <p id="message">First to 7 wins. You are on the left.</p>
+          <button type="button" id="start">Start game</button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="controls">
+      <span class="scoreline" id="status">Player 0 · 0 AI</span>
+      <div>
+        <button type="button" id="pause">Pause</button>
+        <button type="button" id="restart">Restart</button>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    const canvas = document.querySelector("#canvas");
+    const ctx = canvas.getContext("2d");
+    const overlay = document.querySelector("#overlay");
+    const result = document.querySelector("#result");
+    const message = document.querySelector("#message");
+    const status = document.querySelector("#status");
+    const board = document.querySelector("#board");
+    const W = canvas.width;
+    const H = canvas.height;
+    const paddle = { w: 15, h: 105 };
+    const player = { x: 36, y: H / 2 - paddle.h / 2, score: 0 };
+    const ai = { x: W - 51, y: H / 2 - paddle.h / 2, score: 0 };
+    const ball = { x: W / 2, y: H / 2, r: 11, vx: 0, vy: 0 };
+    const aiConfig = { speed: 365, error: 38 };
+    let running = false;
+    let paused = false;
+    let last = performance.now();
+    let keys = new Set();
+
+    function resetBall(direction) {
+      ball.x = W / 2;
+      ball.y = H / 2;
+      const speed = 410;
+      const angle = (Math.random() * .8 - .4);
+      ball.vx = Math.cos(angle) * speed * direction;
+      ball.vy = Math.sin(angle) * speed;
+    }
+
+    function resetGame() {
+      player.score = 0;
+      ai.score = 0;
+      player.y = ai.y = H / 2 - paddle.h / 2;
+      updateScore();
+      resetBall(Math.random() > .5 ? 1 : -1);
+    }
+
+    function updateScore() {
+      status.textContent = `Player ${player.score} · ${ai.score} AI`;
+    }
+
+    function startGame() {
+      resetGame();
+      running = true;
+      paused = false;
+      overlay.classList.remove("show");
+      document.querySelector("#pause").textContent = "Pause";
+    }
+
+    function finish(title, text) {
+      running = false;
+      result.textContent = title;
+      message.textContent = text;
+      document.querySelector("#start").textContent = "Play again";
+      overlay.classList.add("show");
+    }
+
+    function movePlayerTo(clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const y = (clientY - rect.top) * H / rect.height;
+      player.y = Math.max(0, Math.min(H - paddle.h, y - paddle.h / 2));
+    }
+
+    function update(dt) {
+      if (!running || paused) return;
+      const move = 520 * dt;
+      if (keys.has("w") || keys.has("arrowup")) player.y -= move;
+      if (keys.has("s") || keys.has("arrowdown")) player.y += move;
+      player.y = Math.max(0, Math.min(H - paddle.h, player.y));
+
+      const target = ball.y - paddle.h / 2 + (Math.sin(performance.now() / 430) * aiConfig.error);
+      const aiMove = Math.sign(target - ai.y) * aiConfig.speed * dt;
+      if (Math.abs(target - ai.y) > 7) ai.y += aiMove;
+      ai.y = Math.max(0, Math.min(H - paddle.h, ai.y));
+
+      ball.x += ball.vx * dt;
+      ball.y += ball.vy * dt;
+      if (ball.y - ball.r <= 0 || ball.y + ball.r >= H) {
+        ball.y = Math.max(ball.r, Math.min(H - ball.r, ball.y));
+        ball.vy *= -1;
+      }
+
+      collide(player, 1);
+      collide(ai, -1);
+
+      if (ball.x < -ball.r) {
+        ai.score++;
+        updateScore();
+        if (ai.score >= 7) finish("AI wins", "Try another match.");
+        else resetBall(1);
+      } else if (ball.x > W + ball.r) {
+        player.score++;
+        updateScore();
+        if (player.score >= 7) finish("You win!", "You beat the AI.");
+        else resetBall(-1);
+      }
+    }
+
+    function collide(p, direction) {
+      const hitX = direction === 1
+        ? ball.x - ball.r <= p.x + paddle.w && ball.x > p.x
+        : ball.x + ball.r >= p.x && ball.x < p.x + paddle.w;
+      if (!hitX || ball.y + ball.r < p.y || ball.y - ball.r > p.y + paddle.h) return;
+      ball.x = direction === 1 ? p.x + paddle.w + ball.r : p.x - ball.r;
+      const impact = (ball.y - (p.y + paddle.h / 2)) / (paddle.h / 2);
+      const speed = Math.min(760, Math.hypot(ball.vx, ball.vy) + 25);
+      ball.vx = Math.abs(Math.cos(impact * .85) * speed) * direction;
+      ball.vy = Math.sin(impact * .85) * speed;
+    }
+
+    function draw() {
+      ctx.fillStyle = "#02080d";
+      ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = "rgba(48,216,255,.16)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([12, 14]);
+      ctx.beginPath();
+      ctx.moveTo(W / 2, 0);
+      ctx.lineTo(W / 2, H);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "#f3fbff";
+      ctx.shadowColor = "#30d8ff";
+      ctx.shadowBlur = 16;
+      ctx.fillRect(player.x, player.y, paddle.w, paddle.h);
+      ctx.fillRect(ai.x, ai.y, paddle.w, paddle.h);
+      ctx.fillStyle = "#30d8ff";
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = "rgba(243,251,255,.72)";
+      ctx.font = "700 58px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText(player.score, W / 2 - 84, 76);
+      ctx.fillText(ai.score, W / 2 + 84, 76);
+    }
+
+    function loop(now) {
+      const dt = Math.min(.03, (now - last) / 1000);
+      last = now;
+      update(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    document.addEventListener("keydown", event => {
+      const key = event.key.toLowerCase();
+      if (["w", "s", "arrowup", "arrowdown", " "].includes(key)) event.preventDefault();
+      if (key === " " && running) togglePause();
+      keys.add(key);
+    });
+    document.addEventListener("keyup", event => keys.delete(event.key.toLowerCase()));
+    canvas.addEventListener("pointermove", event => movePlayerTo(event.clientY));
+    canvas.addEventListener("pointerdown", event => movePlayerTo(event.clientY));
+    document.querySelector("#start").addEventListener("click", startGame);
+    document.querySelector("#restart").addEventListener("click", startGame);
+
+    function togglePause() {
+      if (!running) return;
+      paused = !paused;
+      document.querySelector("#pause").textContent = paused ? "Resume" : "Pause";
+    }
+
+    document.querySelector("#pause").addEventListener("click", togglePause);
+    resetGame();
+    draw();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

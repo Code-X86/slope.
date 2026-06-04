@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Breakout</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #03030c;
+      --panel: rgba(8, 10, 28, .9);
+      --line: #292b52;
+      --cyan: #27e7ff;
+      --pink: #ff3bbd;
+      --text: #f7f7ff;
+      --muted: #9699bd;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      padding: clamp(8px, 2vw, 20px);
+      background:
+        radial-gradient(circle at 50% 10%, rgba(39, 231, 255, .12), transparent 35%),
+        radial-gradient(circle at 20% 85%, rgba(255, 59, 189, .1), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, sans-serif;
+    }
+
+    button { font: inherit; }
+
+    .game {
+      width: min(100%, 1120px);
+      max-width: 100%;
+      height: min(100%, 820px);
+      min-width: 0;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 10px;
+    }
+
+    .hud, .footer {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 42px;
+    }
+
+    .brand {
+      color: var(--cyan);
+      font-size: clamp(18px, 3vw, 27px);
+      font-weight: 950;
+      letter-spacing: -.055em;
+      text-shadow: 0 0 18px rgba(39, 231, 255, .5);
+    }
+
+    .stats { min-width: 0; display: flex; gap: clamp(14px, 3vw, 30px); }
+    .stat { color: var(--muted); font-size: 11px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+    .stat strong { display: block; margin-top: 2px; color: var(--text); font-size: 15px; letter-spacing: 0; text-align: center; }
+
+    .board {
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: #03040f;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .5), 0 0 32px rgba(39, 231, 255, .08);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      height: 100%;
+      touch-action: none;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      background: rgba(3, 3, 13, .8);
+      backdrop-filter: blur(7px);
+      text-align: center;
+    }
+
+    .overlay.show { display: grid; }
+
+    .menu {
+      width: 100%;
+      max-width: 510px;
+      min-width: 0;
+      padding: clamp(20px, 4vw, 34px);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, .5);
+    }
+
+    h1 { margin: 0; color: var(--cyan); font-size: clamp(35px, 7vw, 68px); line-height: .9; letter-spacing: -.07em; text-shadow: 0 0 22px rgba(39, 231, 255, .45); }
+    .menu p { margin: 12px 0 22px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .menu-label { display: block; margin: 15px 0 8px; color: var(--muted); font-size: 10px; font-weight: 900; letter-spacing: .15em; text-transform: uppercase; }
+    .choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    .levels { grid-template-columns: repeat(5, 1fr); }
+
+    button {
+      min-width: 0;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0c0e24;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    button:hover, button.active { border-color: var(--cyan); color: var(--cyan); }
+    .primary { width: 100%; margin-top: 22px; border-color: var(--cyan); background: var(--cyan); color: #03040f; font-size: 14px; }
+    .primary:hover { background: #78f1ff; color: #03040f; }
+    .hint { color: var(--muted); font-size: 11px; }
+    .actions { display: flex; gap: 7px; }
+
+    @media (max-width: 620px) {
+      body { padding: 6px; }
+      .game { gap: 6px; }
+      .hud { min-height: 38px; }
+      .brand { display: none; }
+      .stats { width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
+      .stat { font-size: 9px; }
+      .stat strong { font-size: 12px; }
+      .footer { min-height: 38px; }
+      .hint { display: none; }
+      .actions { width: 100%; justify-content: flex-end; }
+      .actions { gap: 4px; }
+      .actions button { padding: 8px; }
+      .overlay { padding: 7px; }
+      .menu { width: calc(100vw - 26px); max-width: calc(100vw - 26px); padding: 18px 10px; }
+      .choices { gap: 5px; }
+      .choices button { padding-inline: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="game">
+    <header class="hud">
+      <div class="brand">BREAKOUT</div>
+      <div class="stats">
+        <span class="stat">Score<strong id="score">0</strong></span>
+        <span class="stat">Level<strong id="level">1 / 5</strong></span>
+        <span class="stat">Lives<strong id="lives">3</strong></span>
+        <span class="stat">Mode<strong id="mode">Normal</strong></span>
+      </div>
+    </header>
+
+    <section class="board" id="board">
+      <canvas id="canvas" width="960" height="600" aria-label="Breakout game"></canvas>
+      <div class="overlay show" id="overlay">
+        <div class="menu">
+          <h1 id="title">Breakout</h1>
+          <p id="message">Clear every brick. Catch blue x2 and orange +3 powerups. Hard mode adds red speed boosts.</p>
+          <span class="menu-label">Difficulty</span>
+          <div class="choices" id="difficulties">
+            <button type="button" data-difficulty="easy">Easy</button>
+            <button class="active" type="button" data-difficulty="normal">Normal</button>
+            <button type="button" data-difficulty="hard">Hard</button>
+          </div>
+          <span class="menu-label">Starting level</span>
+          <div class="choices levels" id="levels">
+            <button class="active" type="button" data-level="0">1</button>
+            <button type="button" data-level="1">2</button>
+            <button type="button" data-level="2">3</button>
+            <button type="button" data-level="3">4</button>
+            <button type="button" data-level="4">5</button>
+          </div>
+          <button class="primary" type="button" id="start">Start game</button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span class="hint">Move: A/D or pointer · Launch: Space/click</span>
+      <div class="actions">
+        <button type="button" id="pause">Pause</button>
+        <button type="button" id="menuButton">Menu</button>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    const canvas = document.querySelector("#canvas");
+    const ctx = canvas.getContext("2d");
+    const board = document.querySelector("#board");
+    const overlay = document.querySelector("#overlay");
+    const title = document.querySelector("#title");
+    const message = document.querySelector("#message");
+    const W = canvas.width;
+    const H = canvas.height;
+
+    const settings = {
+      easy: { label: "Easy", speed: 330, paddle: 170, lives: 5 },
+      normal: { label: "Normal", speed: 410, paddle: 130, lives: 3 },
+      hard: { label: "Hard", speed: 510, paddle: 96, lives: 2 }
+    };
+
+    const patterns = [
+      (r, c) => true,
+      (r, c) => r === 0 || (r + c) % 7 !== 0,
+      (r, c) => r === 0 || (r * 2 + c) % 9 !== 0,
+      (r, c) => r === 0 || (r + c * 2) % 10 !== 0,
+      (r, c) => r === 0 || (r * 3 + c * 2) % 11 !== 0
+    ];
+
+    const colors = ["#27e7ff", "#6f7cff", "#b44cff", "#ff3bbd", "#ff5d67", "#ffbc42"];
+    const paddle = { x: 0, y: H - 42, w: 130, h: 13, speed: 650 };
+    let balls = [];
+    let powerups = [];
+    let bricks = [];
+    let difficulty = "normal";
+    let selectedLevel = 0;
+    let currentLevel = 0;
+    let score = 0;
+    let lives = 3;
+    let running = false;
+    let paused = false;
+    let keys = new Set();
+    let last = performance.now();
+
+    function makeLevel(index) {
+      bricks = [];
+      const rows = 4 + index;
+      const cols = 24;
+      const gap = 4;
+      const side = 30;
+      const top = 62;
+      const width = (W - side * 2 - gap * (cols - 1)) / cols;
+      const height = 24;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (!patterns[index](r, Math.floor(c / 2))) continue;
+          bricks.push({ x: side + c * (width + gap), y: top + r * (height + gap), w: width, h: height, color: colors[(r + index) % colors.length], alive: true });
+        }
+      }
+    }
+
+    function makeBall(x = paddle.x + paddle.w / 2, y = paddle.y - 11, vx = 0, vy = 0, stuck = false) {
+      return { x, y, r: 8, vx, vy, stuck };
+    }
+
+    function resetBalls() {
+      balls = [makeBall(undefined, undefined, 0, 0, true)];
+      powerups = [];
+    }
+
+    function launchBalls() {
+      if (!running || paused) return;
+      const speed = settings[difficulty].speed + currentLevel * 22;
+      balls.filter(ball => ball.stuck).forEach(ball => {
+        const angle = -.7 + Math.random() * .35;
+        ball.vx = Math.cos(angle) * speed * (Math.random() > .5 ? 1 : -1);
+        ball.vy = Math.sin(angle) * speed;
+        ball.stuck = false;
+      });
+    }
+
+    function dropPowerup(brick) {
+      if (Math.random() >= .10) return;
+      const types = difficulty === "hard" ? ["blue", "orange", "red"] : ["blue", "orange"];
+      const type = types[Math.floor(Math.random() * types.length)];
+      powerups.push({ type, x: brick.x + brick.w / 2, y: brick.y + brick.h / 2, r: 11, vy: 150 });
+    }
+
+    function cloneBall(ball, angleOffset) {
+      const speed = Math.hypot(ball.vx, ball.vy) || settings[difficulty].speed;
+      const angle = Math.atan2(ball.vy, ball.vx) + angleOffset;
+      return makeBall(ball.x, ball.y, Math.cos(angle) * speed, Math.sin(angle) * speed);
+    }
+
+    function collectPowerup(type) {
+      if (type === "blue") {
+        const originals = [...balls];
+        balls.push(...originals.map((ball, index) => cloneBall(ball, index % 2 ? -.22 : .22)));
+      } else if (type === "orange") {
+        const source = balls[0] || makeBall();
+        balls.push(cloneBall(source, -.42), cloneBall(source, 0), cloneBall(source, .42));
+      } else if (type === "red") {
+        balls.forEach(ball => {
+          ball.vx *= 2;
+          ball.vy *= 2;
+        });
+      }
+    }
+
+    function updateHud() {
+      document.querySelector("#score").textContent = score;
+      document.querySelector("#level").textContent = `${currentLevel + 1} / ${patterns.length}`;
+      document.querySelector("#lives").textContent = lives;
+      document.querySelector("#mode").textContent = settings[difficulty].label;
+    }
+
+    function startGame() {
+      currentLevel = selectedLevel;
+      score = 0;
+      lives = settings[difficulty].lives;
+      paddle.w = settings[difficulty].paddle;
+      paddle.x = W / 2 - paddle.w / 2;
+      makeLevel(currentLevel);
+      resetBalls();
+      updateHud();
+      running = true;
+      paused = false;
+      document.querySelector("#pause").textContent = "Pause";
+      overlay.classList.remove("show");
+    }
+
+    function showMenu(menuTitle, text, buttonText = "Start game") {
+      running = false;
+      title.textContent = menuTitle;
+      message.textContent = text;
+      document.querySelector("#start").textContent = buttonText;
+      overlay.classList.add("show");
+    }
+
+    function loseLife() {
+      lives--;
+      updateHud();
+      if (lives <= 0) {
+        showMenu("Game over", `Score: ${score}. Choose a level and try again.`, "Play again");
+      } else {
+        resetBalls();
+      }
+    }
+
+    function nextLevel() {
+      score += 1000;
+      if (currentLevel >= patterns.length - 1) {
+        updateHud();
+        showMenu("You win!", `All five levels cleared. Final score: ${score}.`, "Play again");
+        return;
+      }
+      currentLevel++;
+      makeLevel(currentLevel);
+      resetBalls();
+      updateHud();
+    }
+
+    function movePaddleTo(clientX) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (clientX - rect.left) * W / rect.width;
+      paddle.x = Math.max(0, Math.min(W - paddle.w, x - paddle.w / 2));
+      balls.filter(ball => ball.stuck).forEach(ball => {
+        ball.x = paddle.x + paddle.w / 2;
+        ball.y = paddle.y - ball.r - 3;
+      });
+    }
+
+    function circleHitsBrick(ball, brick) {
+      const nearX = Math.max(brick.x, Math.min(ball.x, brick.x + brick.w));
+      const nearY = Math.max(brick.y, Math.min(ball.y, brick.y + brick.h));
+      const dx = ball.x - nearX;
+      const dy = ball.y - nearY;
+      return dx * dx + dy * dy <= ball.r * ball.r;
+    }
+
+    function update(dt) {
+      if (!running || paused) return;
+      const move = paddle.speed * dt;
+      if (keys.has("a") || keys.has("arrowleft")) paddle.x -= move;
+      if (keys.has("d") || keys.has("arrowright")) paddle.x += move;
+      paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
+
+      for (let i = balls.length - 1; i >= 0; i--) {
+        const ball = balls[i];
+        if (ball.stuck) {
+          ball.x = paddle.x + paddle.w / 2;
+          ball.y = paddle.y - ball.r - 3;
+          continue;
+        }
+
+        ball.x += ball.vx * dt;
+        ball.y += ball.vy * dt;
+
+        if (ball.x - ball.r <= 0 || ball.x + ball.r >= W) {
+          ball.x = Math.max(ball.r, Math.min(W - ball.r, ball.x));
+          ball.vx *= -1;
+        }
+        if (ball.y - ball.r <= 0) {
+          ball.y = ball.r;
+          ball.vy = Math.abs(ball.vy);
+        }
+        if (ball.y - ball.r > H) {
+          balls.splice(i, 1);
+          continue;
+        }
+
+        if (ball.vy > 0 && ball.y + ball.r >= paddle.y && ball.y - ball.r <= paddle.y + paddle.h && ball.x >= paddle.x - ball.r && ball.x <= paddle.x + paddle.w + ball.r) {
+          ball.y = paddle.y - ball.r;
+          const impact = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
+          const speed = Math.min(1500, Math.hypot(ball.vx, ball.vy) + 8);
+          ball.vx = Math.sin(impact * 1.1) * speed;
+          ball.vy = -Math.abs(Math.cos(impact * 1.1) * speed);
+        }
+
+        for (const brick of bricks) {
+          if (!brick.alive || !circleHitsBrick(ball, brick)) continue;
+          brick.alive = false;
+          score += 100 + currentLevel * 20;
+          dropPowerup(brick);
+          const overlapX = Math.min(Math.abs(ball.x - brick.x), Math.abs(ball.x - (brick.x + brick.w)));
+          const overlapY = Math.min(Math.abs(ball.y - brick.y), Math.abs(ball.y - (brick.y + brick.h)));
+          if (overlapX < overlapY) ball.vx *= -1;
+          else ball.vy *= -1;
+          updateHud();
+          break;
+        }
+      }
+
+      for (let i = powerups.length - 1; i >= 0; i--) {
+        const powerup = powerups[i];
+        powerup.y += powerup.vy * dt;
+        if (powerup.y + powerup.r >= paddle.y && powerup.y - powerup.r <= paddle.y + paddle.h && powerup.x >= paddle.x && powerup.x <= paddle.x + paddle.w) {
+          collectPowerup(powerup.type);
+          powerups.splice(i, 1);
+        } else if (powerup.y - powerup.r > H) {
+          powerups.splice(i, 1);
+        }
+      }
+
+      if (balls.length === 0) loseLife();
+      if (bricks.every(brick => !brick.alive)) nextLevel();
+    }
+
+    function roundedRect(x, y, w, h, radius) {
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, radius);
+      ctx.fill();
+    }
+
+    function draw() {
+      ctx.fillStyle = "#03040f";
+      ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = "rgba(39,231,255,.055)";
+      ctx.lineWidth = 1;
+      for (let x = 0; x < W; x += 48) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, H);
+        ctx.stroke();
+      }
+      for (let y = 0; y < H; y += 48) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+        ctx.stroke();
+      }
+
+      for (const brick of bricks) {
+        if (!brick.alive) continue;
+        ctx.shadowColor = brick.color;
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = brick.color;
+        roundedRect(brick.x, brick.y, brick.w, brick.h, 4);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "rgba(255,255,255,.27)";
+        ctx.fillRect(brick.x + 5, brick.y + 4, brick.w - 10, 2);
+      }
+
+      ctx.shadowColor = "#27e7ff";
+      ctx.shadowBlur = 18;
+      ctx.fillStyle = "#d9fbff";
+      roundedRect(paddle.x, paddle.y, paddle.w, paddle.h, 7);
+      for (const ball of balls) {
+        ctx.fillStyle = "#27e7ff";
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+
+      for (const powerup of powerups) {
+        const powerupColor = powerup.type === "blue" ? "#27e7ff" : powerup.type === "orange" ? "#ff9f1c" : "#ff354d";
+        ctx.shadowColor = powerupColor;
+        ctx.shadowBlur = 18;
+        ctx.fillStyle = powerupColor;
+        ctx.beginPath();
+        ctx.arc(powerup.x, powerup.y, powerup.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#fff";
+        ctx.font = "900 12px system-ui";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(powerup.type === "blue" ? "x2" : powerup.type === "orange" ? "+3" : ">>", powerup.x, powerup.y + .5);
+      }
+      ctx.shadowBlur = 0;
+
+      if (balls.some(ball => ball.stuck) && running) {
+        ctx.fillStyle = "rgba(255,255,255,.75)";
+        ctx.font = "800 13px system-ui";
+        ctx.textAlign = "center";
+        ctx.fillText("CLICK OR PRESS SPACE TO LAUNCH", W / 2, H - 92);
+      }
+    }
+
+    function frame(now) {
+      const dt = Math.min(.025, (now - last) / 1000);
+      last = now;
+      update(dt);
+      draw();
+      requestAnimationFrame(frame);
+    }
+
+    document.querySelectorAll("[data-difficulty]").forEach(button => button.addEventListener("click", () => {
+      difficulty = button.dataset.difficulty;
+      document.querySelectorAll("[data-difficulty]").forEach(item => item.classList.toggle("active", item === button));
+    }));
+
+    document.querySelectorAll("[data-level]").forEach(button => button.addEventListener("click", () => {
+      selectedLevel = Number(button.dataset.level);
+      document.querySelectorAll("[data-level]").forEach(item => item.classList.toggle("active", item === button));
+    }));
+
+    document.querySelector("#start").addEventListener("click", startGame);
+    document.querySelector("#menuButton").addEventListener("click", () => showMenu("Breakout", "Blue doubles every ball, orange adds three, and Hard mode adds red speed boosts.", "Start game"));
+    document.querySelector("#pause").addEventListener("click", event => {
+      if (!running) return;
+      paused = !paused;
+      event.currentTarget.textContent = paused ? "Resume" : "Pause";
+    });
+
+    window.addEventListener("keydown", event => {
+      const key = event.key.toLowerCase();
+      if (["arrowleft", "arrowright", " ", "a", "d"].includes(key)) event.preventDefault();
+      keys.add(key);
+      if (key === " ") launchBalls();
+      if (key === "p" && running) document.querySelector("#pause").click();
+    });
+    window.addEventListener("keyup", event => keys.delete(event.key.toLowerCase()));
+    canvas.addEventListener("pointermove", event => movePaddleTo(event.clientX));
+    canvas.addEventListener("pointerdown", event => {
+      movePaddleTo(event.clientX);
+      launchBalls();
+    });
+
+    makeLevel(0);
+    paddle.x = W / 2 - paddle.w / 2;
+    resetBalls();
+    updateHud();
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

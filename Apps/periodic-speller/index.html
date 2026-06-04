@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      id="site-favicon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚛️</text></svg>"
+    />
+
+    <!-- Site chrome scripts from the upstream page are intentionally omitted
+         in this static mini-browser build. -->
+
+    <title>Periodic Table Speller — Spell Your Name with Element Symbols</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="author" content="Joe Heyming" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
+    <meta name="theme-color" content="#FAFAFA" />
+    <meta
+      name="description"
+      content="Spell your name (or any word) using periodic table element symbols. Type and see it broken into tiles like Iodine + Oxygen + Erbium. Free, no ads."
+    />
+    <meta
+      name="keywords"
+      content="periodic table speller, spell my name with elements, periodic table word maker, periodic table text symbols convert, spell name periodic table, element speller, spell with elements, periodic table word game, chemistry, element symbols, science tool, ad-free, no ads"
+    />
+
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Joe Heyming - Periodic Table Speller" />
+    <meta
+      property="og:title"
+      content="Periodic Table Speller — Spell Your Name with Element Symbols"
+    />
+    <meta
+      property="og:description"
+      content="Spell your name (or any word) using periodic table element symbols. Type and see it broken into tiles like I + O + Er. Free, no ads."
+    />
+    <meta property="og:url" content="https://joeheyming.github.io/periodic-speller/" />
+    <meta property="og:locale" content="en_US" />
+    <meta
+      property="og:image"
+      content="https://joeheyming.github.io/periodic-speller/periodic-speller-preview.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="A name spelled out as periodic-table tiles — for example 'JOE' rendered as the element symbols J + O + E — on a colorful chemistry-themed background."
+    />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@joeheyming" />
+    <meta name="twitter:creator" content="@joeheyming" />
+    <meta
+      name="twitter:title"
+      content="Periodic Table Speller — Spell Your Name with Element Symbols"
+    />
+    <meta
+      name="twitter:description"
+      content="Spell your name (or any word) using periodic table element symbols. Type and see it broken into tiles. Free, no ads."
+    />
+    <meta
+      name="twitter:image"
+      content="https://joeheyming.github.io/periodic-speller/periodic-speller-preview.png"
+    />
+    <meta
+      name="twitter:image:alt"
+      content="A name spelled out as periodic-table tiles — for example 'JOE' rendered as the element symbols J + O + E — on a colorful chemistry-themed background."
+    />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://joeheyming.github.io/periodic-speller/" />
+
+    <!-- iOS optimizations -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Periodic Speller" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <link href="styles/base.css" rel="stylesheet" />
+    <link href="styles/theme.css" rel="stylesheet" />
+    <link href="styles/custom-element.css" rel="stylesheet" />
+    <link href="styles/toast-categories.css" rel="stylesheet" />
+    <link href="styles/modal-grid.css" rel="stylesheet" />
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "BrowserApplication",
+            "applicationCategory": "BrowserApplication",
+            "inLanguage": "en",
+            "name": "Periodic Table Speller",
+            "url": "https://joeheyming.github.io/periodic-speller/",
+            "description": "Spell words using periodic table element symbols. Type any word and see it broken into element tiles.",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "keywords": "periodic table, element speller, chemistry, spell with elements"
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "How does periodic table spelling work?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Type any word and the speller breaks it into a sequence of element symbols. For example, 'JOE' becomes Iodine + Oxygen + Erbium (I + O + Er, but Joe spells as J — which has no element — so the speller flags untranslatable letters). Names like 'PAUL' work cleanly: Phosphorus + Astatine + Uranium + Lithium (P + At + U + Li)."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Why can't every word be spelled?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Only 26 letters appear as the first letter of an element symbol, and only some letter combinations exist as valid two-letter symbols (Cu, Fe, Ag, Au, etc.). Letters J and Q never start an element symbol, so any word containing them can't be fully translated. The speller highlights untranslatable letters."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Are the symbols clickable?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes — each tile shows the element's atomic number, name, and category (metal, noble gas, halogen, etc.). The full periodic table view colour-codes elements by category."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What's the longest word that can be spelled in elements?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Quite long, since two-letter symbols give the algorithm a lot of flexibility. 'ScIeNcEs' spells out using Scandium + Iodine + Nitrogen + Carbon + Einsteinium + Sulfur. The speller's auto-segmenter finds a valid split when one exists; common phrases up to ~20 letters work."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I share my name as element tiles?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes — the share button generates a static image of your name in tiled form. The URL also encodes the input so deep-linking works."
+                }
+              }
+            ]
+          },
+          {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Joe Heyming",
+                "item": "https://joeheyming.github.io/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Periodic Table Speller"
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+
+    <script type="module" src="index.js"></script>
+
+    <!-- Heyming OS brand foundation -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;500;600&display=optional"
+    />
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this application.</noscript>
+    <header>
+      <h1>
+        Periodic Table Speller
+        <share-button label="📤 Share" theme="gradient" style="margin-left: 10px"></share-button>
+      </h1>
+      <p class="subtitle">Spell your name (or any word) with periodic table element symbols</p>
+    </header>
+    <main>
+      <div class="input-area">
+        <div class="input-wrap">
+          <textarea
+            id="wordInput"
+            rows="2"
+            placeholder="e.g. bacon, genius, copper...&#10;Use newlines for multiple rows"
+            autocomplete="off"
+            autofocus
+          ></textarea>
+          <button id="clearBtn" title="Clear">✕</button>
+        </div>
+        <button id="tableBtn" title="Periodic Table Reference">⚛</button>
+      </div>
+      <div id="result" class="result"></div>
+      <div id="noMatch" class="no-match" hidden>
+        <span class="no-match-icon">🧪</span>
+        <p>Can't spell that with element symbols!</p>
+        <p class="no-match-hint">Unmatched letters shown in gray below.</p>
+      </div>
+      <div id="tiles" class="tiles"></div>
+      <div class="export-row" id="exportRow" hidden>
+        <div class="theme-picker-wrap">
+          <button id="themeBtn" class="export-btn" title="Change tile theme">🎨 Theme</button>
+          <div id="themePopover" class="theme-popover" hidden></div>
+        </div>
+        <label class="export-option">
+          <input type="checkbox" id="transparentBg" />
+          Transparent
+        </label>
+        <button id="exportBtn" class="export-btn" title="Download as PNG">Save as PNG</button>
+        <button id="shareLinkBtn" class="export-btn" title="Copy shareable link">
+          🔗 Copy Link
+        </button>
+      </div>
+      <div id="customElList" class="custom-el-list" hidden>
+        <div class="custom-el-list-header">
+          <span>Custom Elements</span>
+          <button
+            id="clearAllCustom"
+            class="custom-el-clear-all"
+            title="Remove all custom elements"
+          >
+            Clear All
+          </button>
+        </div>
+        <div id="customElItems"></div>
+      </div>
+      <details class="how-it-works">
+        <summary>How it works</summary>
+        <p>
+          Each letter or pair of letters is matched against the 118 element symbols from the
+          periodic table. The algorithm tries two-letter symbols first (like
+          <strong>He</strong>
+          ,
+          <strong>Li</strong>
+          ,
+          <strong>Ac</strong>
+          ) then falls back to single-letter ones (
+          <strong>B</strong>
+          ,
+          <strong>C</strong>
+          ,
+          <strong>N</strong>
+          , etc.). If a full decomposition can't be found, unmatched letters appear as clickable
+          gray tiles &mdash; click one to create a custom fake element for that symbol.
+        </p>
+      </details>
+    </main>
+
+    <div id="customElementModal" class="modal-overlay" hidden>
+      <div class="modal-content custom-el-dialog">
+        <div class="modal-header">
+          <h2>Create Custom Element</h2>
+          <button
+            class="modal-close"
+            onclick="document.getElementById('customElementModal').hidden=true"
+            title="Close"
+          >
+            ✕
+          </button>
+        </div>
+        <p class="custom-el-hint">
+          No element matches "
+          <span id="customElSymbolPreview"></span>
+          ". Create a fake one so it renders as a tile.
+        </p>
+        <form id="customElForm" autocomplete="off">
+          <div class="custom-el-field">
+            <label for="customElSymbol">Symbol</label>
+            <input type="text" id="customElSymbol" maxlength="2" readonly />
+          </div>
+          <div class="custom-el-field">
+            <label for="customElName">Name</label>
+            <input type="text" id="customElName" placeholder="e.g. Joium" maxlength="20" required />
+          </div>
+          <div class="custom-el-field">
+            <label for="customElNumber">Number</label>
+            <input type="number" id="customElNumber" placeholder="119" required />
+          </div>
+          <div class="custom-el-actions">
+            <button type="submit" class="export-btn custom-el-save">Create Element</button>
+            <button
+              type="button"
+              class="export-btn"
+              onclick="document.getElementById('customElementModal').hidden=true"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="tableModal" class="modal-overlay" hidden>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Periodic Table of Elements</h2>
+          <button id="closeModal" class="modal-close" title="Close">✕</button>
+        </div>
+        <div class="modal-legend" id="modalLegend"></div>
+        <div class="periodic-grid" id="periodicGrid"></div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var shareBtn = document.querySelector('share-button');
+        if (shareBtn) {
+          shareBtn.textGenerator = function () {
+            var text = document.getElementById('wordInput').value.trim();
+            if (text) {
+              return 'I spelled "' + text + '" with periodic table elements! Try it yourself: ⚛️';
+            }
+            return 'Spell words using periodic table element symbols! ⚛️';
+          };
+        }
+      });
+    </script>
+
+    <!-- SEO content footer. Marked .seo-intro + hidden so it stays in the
+         DOM for crawlers but doesn't show on the page. -->
+    <footer class="seo-intro" hidden>
+      <h2>Spell Names &amp; Words with Periodic Table Element Symbols</h2>
+      <p>
+        Type a word or your name and watch it broken into element tiles &mdash; e.g.
+        <strong>JOE</strong>
+        becomes I (Iodine) + O (Oxygen) + ... or your full name spelled chemically. Convert text to
+        chemistry symbols, pick a theme, and export as PNG. Great for science teachers, chemistry
+        homework, and nerdy gifts.
+      </p>
+      <nav aria-label="More tools and games">
+        <strong>More from Joe Heyming:</strong>
+        <a href="/wordle-finder/">Wordle Finder</a>
+        &middot;
+        <a href="/calculator/">Calculator</a>
+        &middot;
+        <a href="/countdown/">Countdown</a>
+        &middot;
+        <a href="/notepad/">Notepad</a>
+        &middot;
+        <a href="/terminal/">Web Terminal</a>
+        &middot;
+        <a href="/about/">About Joe</a>
+      </nav>
+    </footer>
+  </body>
+</html>

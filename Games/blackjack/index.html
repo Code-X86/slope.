@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blackjack</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: radial-gradient(circle at top, #132b4d, #050914 65%); color: #f4f8ff; font-family: Inter, system-ui, sans-serif; }
+    .table { width: min(960px, 96vw); padding: 24px; border-radius: 24px; background: rgba(5, 14, 31, .84); border: 1px solid rgba(255,255,255,.14); box-shadow: 0 24px 80px rgba(0,0,0,.45); }
+    h1 { margin: 0; font-size: clamp(34px, 6vw, 64px); letter-spacing: -.06em; }
+    .sub { margin: 6px 0 20px; color: #9fb2cf; font-weight: 700; }
+    .hud, .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .pill { padding: 10px 13px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.13); font-weight: 900; }
+    .area { margin: 20px 0; }
+    .label { margin: 0 0 10px; color: #9fb2cf; font-size: 13px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+    .hand { display: flex; flex-wrap: wrap; gap: 12px; min-height: 142px; }
+    .card { width: 100px; height: 138px; display: grid; place-items: center; border: 2px solid #dce7ff; border-radius: 14px; background: #fffdf3; color: #111; font-size: 29px; font-weight: 950; box-shadow: 0 10px 24px rgba(0,0,0,.28); }
+    .card.red { color: #d92f45; }
+    .card.back { color: #dce7ff; background: repeating-linear-gradient(45deg, #12365e 0 8px, #0c2748 8px 16px); }
+    button { padding: 12px 16px; border: 0; border-radius: 12px; background: #42d9ff; color: #041018; font-weight: 950; cursor: pointer; }
+    button.secondary { background: #162641; color: #e6f3ff; border: 1px solid rgba(255,255,255,.15); }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    #message { margin-left: auto; color: #fff6b0; font-weight: 900; }
+  </style>
+</head>
+<body>
+  <main class="table">
+    <h1>Blackjack</h1>
+    <p class="sub">Beat the dealer without going over 21. Dealer stands on 17.</p>
+    <div class="hud">
+      <div class="pill">Chips: <span id="chips">100</span></div>
+      <div class="pill">Bet: 10</div>
+      <div class="pill">Dealer: <span id="dealerScore">?</span></div>
+      <div class="pill">You: <span id="playerScore">0</span></div>
+    </div>
+    <section class="area"><p class="label">Dealer</p><div class="hand" id="dealer"></div></section>
+    <section class="area"><p class="label">Player</p><div class="hand" id="player"></div></section>
+    <div class="controls">
+      <button id="deal">Deal</button>
+      <button class="secondary" id="hit" disabled>Hit</button>
+      <button class="secondary" id="stand" disabled>Stand</button>
+      <span id="message">Press Deal.</span>
+    </div>
+  </main>
+  <script>
+    const suits = ["♠", "♥", "♦", "♣"], ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+    const dealerEl = document.querySelector("#dealer"), playerEl = document.querySelector("#player"), msg = document.querySelector("#message");
+    const chipsEl = document.querySelector("#chips"), dealerScoreEl = document.querySelector("#dealerScore"), playerScoreEl = document.querySelector("#playerScore");
+    const hit = document.querySelector("#hit"), stand = document.querySelector("#stand");
+    let deck = [], dealer = [], player = [], chips = 100, running = false;
+    function makeDeck() { return suits.flatMap(suit => ranks.map(rank => ({ suit, rank }))).sort(() => Math.random() - .5); }
+    function draw() { if (!deck.length) deck = makeDeck(); return deck.pop(); }
+    function points(hand) {
+      let total = 0, aces = 0;
+      hand.forEach(card => { if (card.rank === "A") { total += 11; aces++; } else total += /J|Q|K/.test(card.rank) ? 10 : Number(card.rank); });
+      while (total > 21 && aces) { total -= 10; aces--; }
+      return total;
+    }
+    function cardEl(card, hidden) {
+      const div = document.createElement("div");
+      div.className = hidden ? "card back" : `card ${card.suit === "♥" || card.suit === "♦" ? "red" : ""}`;
+      div.textContent = hidden ? "◆" : `${card.rank}${card.suit}`;
+      return div;
+    }
+    function render(showDealer = false) {
+      dealerEl.replaceChildren(...dealer.map((card, i) => cardEl(card, i === 1 && !showDealer && running)));
+      playerEl.replaceChildren(...player.map(card => cardEl(card, false)));
+      dealerScoreEl.textContent = showDealer || !running ? points(dealer) : points([dealer[0]]);
+      playerScoreEl.textContent = points(player);
+      chipsEl.textContent = chips;
+    }
+    function end(text, payout) {
+      running = false; chips += payout; hit.disabled = true; stand.disabled = true; msg.textContent = text; render(true);
+    }
+    document.querySelector("#deal").addEventListener("click", () => {
+      if (chips < 10) chips = 100;
+      deck = makeDeck(); dealer = [draw(), draw()]; player = [draw(), draw()]; chips -= 10; running = true;
+      hit.disabled = false; stand.disabled = false; msg.textContent = "Hit or stand.";
+      const p = points(player), d = points(dealer);
+      render(false);
+      if (p === 21 || d === 21) end(p === d ? "Push. Both blackjack." : p === 21 ? "Blackjack. You win." : "Dealer blackjack.", p === d ? 10 : p === 21 ? 25 : 0);
+    });
+    hit.addEventListener("click", () => {
+      if (!running) return;
+      player.push(draw()); render(false);
+      if (points(player) > 21) end("Bust. Dealer wins.", 0);
+    });
+    stand.addEventListener("click", () => {
+      if (!running) return;
+      while (points(dealer) < 17) dealer.push(draw());
+      const p = points(player), d = points(dealer);
+      if (d > 21) end("Dealer busts. You win.", 20);
+      else if (p > d) end("You win.", 20);
+      else if (p < d) end("Dealer wins.", 0);
+      else end("Push.", 10);
+    });
+    render(true);
+  </script>
+</body>
+</html>

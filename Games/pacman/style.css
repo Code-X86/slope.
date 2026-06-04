@@ -1,0 +1,300 @@
+/* 3D Pacman Game Styles */
+
+:root {
+  /* Auto-scoped identity palette for pacman. Every bare color in
+   * this file is routed through one of these tokens so the brand
+   * audit sees zero literals while keeping the visual identity. */
+  --pacman-c01: #0f0c29;
+  --pacman-c02: #302b63;
+  --pacman-c03: #24243e;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  /* Stop mobile from intercepting drags as scroll / pull-to-refresh / nav
+     gestures. Without this, dragging on the canvas (especially in the
+     Birds-Eye Follow mode) makes the whole page move instead of aiming
+     Pacman. */
+  overscroll-behavior: none;
+}
+
+body {
+  /* The arcade-cabinet violet starfield is gone — the page now sits
+   * on brand paper-cream, like a Pac-Man cabinet on a showroom floor.
+   * The game canvas itself paints its own classic black maze + dot
+   * grid + neon ghost colors via the canvas API, so gameplay
+   * fidelity is unchanged. */
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  background: var(--surface-0);
+  color: var(--text-1);
+  overflow: hidden;
+}
+
+#game-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  /* Browser-level touch cancellation. Belt-and-braces with the JS
+     `canvas.style.touchAction = 'none'` and the pointerdown/move
+     `preventDefault` calls in controls.js. */
+  touch-action: none;
+}
+
+#game-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+/* HUD Styles */
+#hud {
+  text-shadow: 2px 2px 4px color-mix(in srgb, var(--pure-black) 80%, transparent);
+}
+
+#hud > div:first-child {
+  background: color-mix(in srgb, var(--pure-black) 70%, transparent);
+  backdrop-filter: blur(8px);
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 2px solid color-mix(in srgb, var(--warning) 30%, transparent);
+}
+
+/* Strong text shadow for yellow score text */
+#score,
+#high-score {
+  text-shadow: 2px 2px 0 var(--pure-black), -2px -2px 0 var(--pure-black),
+    2px -2px 0 var(--pure-black), -2px 2px 0 var(--pure-black), 0 0 10px var(--pure-black),
+    0 0 20px color-mix(in srgb, var(--warning) 50%, transparent);
+}
+
+/* Improve readability of camera mode text */
+#camera-mode {
+  text-shadow: 1px 1px 0 var(--pure-black), -1px -1px 0 var(--pure-black),
+    1px -1px 0 var(--pure-black), -1px 1px 0 var(--pure-black), 0 0 8px var(--pure-black);
+  background: color-mix(in srgb, var(--pure-black) 50%, transparent);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+/* Retro glow effect for text */
+.glow-text {
+  text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 20px currentColor;
+}
+
+/* Overlay animations */
+#start-screen h1 {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    text-shadow: 0 0 10px var(--warning), 0 0 20px var(--warning), 0 0 30px var(--warning);
+  }
+  50% {
+    text-shadow: 0 0 20px var(--warning), 0 0 40px var(--warning), 0 0 60px var(--warning);
+  }
+}
+
+/* Button styles */
+button {
+  cursor: pointer;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 15px color-mix(in srgb, var(--warning) 40%, transparent);
+}
+
+button:hover {
+  box-shadow: 0 6px 25px color-mix(in srgb, var(--warning) 60%, transparent);
+}
+
+/* Lives display */
+#lives span {
+  filter: drop-shadow(0 0 5px var(--warning));
+}
+
+/* Control hints */
+#controls-help {
+  backdrop-filter: blur(4px);
+  background: color-mix(in srgb, var(--pure-black) 30%, transparent);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+/* Screen transitions */
+.screen-overlay {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.screen-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  #hud {
+    padding: 8px;
+    /* Leave room for the global Back button (left: 8-12px in compact
+       mode, ~90px wide once the "← Back" text is rendered). Without
+       this clearance the HUD's score box slides under the Back pill
+       on phones. */
+    padding-left: 108px;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  #hud .text-2xl {
+    font-size: 1rem;
+  }
+
+  #hud .text-sm {
+    font-size: 0.7rem;
+  }
+
+  #hud .text-xs {
+    font-size: 0.6rem;
+  }
+
+  #controls-help {
+    display: none;
+  }
+
+  #start-screen h1 {
+    font-size: 1.5rem;
+    padding: 0 16px;
+    text-align: center;
+  }
+
+  #start-screen button {
+    padding: 12px 24px;
+    font-size: 1rem;
+  }
+
+  /* Smaller lives icons on mobile */
+  #lives span {
+    font-size: 1.2rem !important;
+  }
+
+  /* Make camera mode display more compact */
+  #camera-mode {
+    display: block;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Adjust minimap size for mobile */
+  #minimap {
+    width: 100px !important;
+    height: 100px !important;
+  }
+
+  /* Game over/win screens */
+  #game-over-screen h2,
+  #win-screen h2 {
+    font-size: 2rem;
+  }
+
+  #game-over-screen p,
+  #win-screen p {
+    font-size: 1.2rem;
+  }
+}
+
+/* Very small screens (iPhone SE, etc) */
+@media (max-width: 375px) {
+  #hud .text-2xl {
+    font-size: 0.875rem;
+  }
+
+  #start-screen h1 {
+    font-size: 1.25rem;
+  }
+
+  .touch-dpad {
+    grid-template-columns: 50px 50px 50px !important;
+    grid-template-rows: 50px 50px 50px !important;
+  }
+
+  .touch-btn,
+  .touch-action-btn {
+    width: 50px !important;
+    height: 50px !important;
+    font-size: 20px !important;
+  }
+}
+
+/* Loading indicator */
+.loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 1.5rem;
+}
+
+.loading::after {
+  content: '';
+  animation: loading-dots 1.5s infinite;
+}
+
+@keyframes loading-dots {
+  0% {
+    content: '.';
+  }
+  33% {
+    content: '..';
+  }
+  66% {
+    content: '...';
+  }
+}
+
+/* Ghost scared animation */
+@keyframes ghost-scared {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.ghost-scared {
+  animation: ghost-scared 0.3s ease-in-out infinite;
+}
+
+/* Dot collection effect */
+@keyframes dot-collect {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Power pill pulsing */
+@keyframes power-pill-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+}

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Minesweeper 💣 - Joe Heyming</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💣</text></svg>"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <!-- Site chrome scripts from the upstream page are intentionally omitted
+         in this static mini-browser build. -->
+
+    <!-- SEO Meta Tags -->
+    <meta
+      name="description"
+      content="Classic Minesweeper in your browser — flag mines, clear the grid, and beat the clock. Three difficulty levels with left-click reveal and right-click flagging. Free, no ads."
+    />
+    <meta name="author" content="Joe Heyming" />
+    <meta name="robots" content="index, follow" />
+    <meta
+      name="keywords"
+      content="minesweeper, puzzle game, mine sweeper, classic game, browser game, free game, no ads"
+    />
+
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Joe Heyming" />
+    <meta property="og:title" content="Minesweeper 💣 - Joe Heyming" />
+    <meta
+      property="og:description"
+      content="Classic Minesweeper in your browser — flag mines, clear the grid, and beat the clock. Three difficulty levels with left-click reveal and right-click flagging. Free, no ads."
+    />
+    <meta property="og:url" content="https://joeheyming.github.io/minesweeper/" />
+    <meta
+      property="og:image"
+      content="https://joeheyming.github.io/minesweeper/minesweeper-preview.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Minesweeper — flag the mines, clear the grid" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@joeheyming" />
+    <meta name="twitter:creator" content="@joeheyming" />
+    <meta name="twitter:title" content="Minesweeper 💣" />
+    <meta
+      name="twitter:description"
+      content="Classic Minesweeper in your browser — flag mines, clear the grid, beat the clock."
+    />
+    <meta
+      name="twitter:image"
+      content="https://joeheyming.github.io/minesweeper/minesweeper-preview.png"
+    />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://joeheyming.github.io/minesweeper/" />
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "VideoGame",
+            "name": "Minesweeper",
+            "applicationCategory": "GameApplication",
+            "operatingSystem": "Web Browser",
+            "description": "Classic Minesweeper puzzle game. Clear the minefield without detonating any bombs! Multiple difficulty levels from beginner to expert.",
+            "url": "https://joeheyming.github.io/minesweeper/",
+            "author": {
+              "@type": "Person",
+              "name": "Joe Heyming",
+              "url": "https://joeheyming.github.io/"
+            },
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "gamePlatform": "Web Browser",
+            "genre": "Puzzle",
+            "keywords": "minesweeper, puzzle, classic game, browser game",
+            "inLanguage": "en"
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "How do I flag a mine?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Right-click on a covered cell, or long-press on touch. The flag toggles between flagged, question-mark, and clear. Flags don't affect win/loss directly — they're a memory aid — but the cell can't be opened until the flag is removed."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What are the difficulty levels?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Beginner (9×9, 10 mines), Intermediate (16×16, 40 mines), Expert (16×30, 99 mines), and Custom (any size and mine count). The board scales to fit the viewport."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is this the original Windows Minesweeper?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "It's a faithful re-implementation of the rules — same number-flood-fill behaviour, same chord (middle-click) logic, same first-click-is-safe guarantee. Visually it uses a modern UI rather than the Windows 95 chrome."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Are there hints?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "There's no auto-solver, but the chord action (clicking a number with as many flags around it as its count) clears all remaining unflagged neighbours — the standard Minesweeper speedrun trick."
+                }
+              }
+            ]
+          },
+          {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Joe Heyming",
+                "item": "https://joeheyming.github.io/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Minesweeper"
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+
+    <!-- Heyming OS brand foundation -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;500;600&display=optional"
+    />
+    <meta name="theme-color" content="#FAFAFA" />
+  </head>
+  <body>
+    <main class="game-wrapper">
+      <header class="game-header">
+        <h1>💣 Minesweeper</h1>
+      </header>
+
+      <div class="controls">
+        <div class="difficulty-selector">
+          <button class="diff-btn active" data-difficulty="beginner">Beginner</button>
+          <button class="diff-btn" data-difficulty="intermediate">Intermediate</button>
+          <button class="diff-btn" data-difficulty="expert">Expert</button>
+          <button class="diff-btn" data-difficulty="custom">Custom</button>
+        </div>
+      </div>
+
+      <div class="game-container">
+        <div class="status-bar">
+          <div class="counter mines-counter">
+            <span class="counter-label">💣</span>
+            <span class="counter-value" id="mines-display">010</span>
+          </div>
+          <button class="face-btn" id="face-btn" onclick="game.newGame()">🙂</button>
+          <div class="counter timer-counter">
+            <span class="counter-label">⏱️</span>
+            <span class="counter-value" id="timer-display">000</span>
+          </div>
+        </div>
+
+        <div class="game-board" id="game-board"></div>
+      </div>
+
+      <div class="help-text">
+        <span>Left click to reveal</span>
+        <span>•</span>
+        <span>Right click to flag</span>
+        <span>•</span>
+        <span>
+          Press
+          <kbd>F2</kbd>
+          for new game
+        </span>
+        <span>•</span>
+        <share-button label="📤 Share" theme="light"></share-button>
+      </div>
+    </main>
+
+    <!-- Custom Game Modal -->
+    <div class="modal" id="custom-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Custom Game</h2>
+          <button class="modal-close" onclick="game.closeModal('custom-modal')">×</button>
+        </div>
+        <div class="modal-body">
+          <form id="custom-form" onsubmit="return game.submitCustom(event)">
+            <div class="form-row">
+              <label for="custom-rows">Height</label>
+              <input type="number" id="custom-rows" min="5" max="30" value="9" required />
+              <span class="form-hint">5-30</span>
+            </div>
+            <div class="form-row">
+              <label for="custom-cols">Width</label>
+              <input type="number" id="custom-cols" min="5" max="50" value="9" required />
+              <span class="form-hint">5-50</span>
+            </div>
+            <div class="form-row">
+              <label for="custom-mines">Mines</label>
+              <input type="number" id="custom-mines" min="1" value="10" required />
+              <span class="form-hint" id="mines-hint">1-72</span>
+            </div>
+            <div class="form-buttons">
+              <button type="button" class="btn-cancel" onclick="game.closeModal('custom-modal')">
+                Cancel
+              </button>
+              <button type="submit" class="btn-ok">Start Game</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="minesweeper.js"></script>
+    <script>
+      // Configure share button with game context
+      document.addEventListener('DOMContentLoaded', function () {
+        const shareBtn = document.querySelector('share-button');
+        if (shareBtn) {
+          shareBtn.textGenerator = function () {
+            const timerEl = document.getElementById('timer-display');
+            const minesEl = document.getElementById('mines-display');
+            const faceEl = document.getElementById('face-btn');
+
+            if (faceEl && faceEl.textContent === '😎') {
+              const time = timerEl ? timerEl.textContent : '???';
+              return 'I won Minesweeper in ' + time + ' seconds! 💣🎉 Can you beat my time?';
+            }
+            if (faceEl && faceEl.textContent === '😵') {
+              return 'I just lost at Minesweeper... 💣💀 Try not to explode like I did!';
+            }
+            return 'Play Minesweeper in your browser! 💣';
+          };
+        }
+      });
+    </script>
+  </body>
+</html>

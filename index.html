@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Mini Play</title>
+  <script src="coi-serviceworker.js"></script>
   <style>
     :root {
       color-scheme: dark;
@@ -146,6 +147,71 @@
     .subtitle { margin: 11px 0 0; color: var(--muted); font-size: 16px; }
     .view-count { color: #718097; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; }
 
+    .library-tools {
+      display: grid;
+      gap: 14px;
+      margin: -10px 0 26px;
+    }
+
+    .library-tools[hidden] { display: none; }
+
+    .search-box {
+      position: relative;
+      max-width: 560px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 14px 16px 14px 44px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      outline: 0;
+      background: var(--panel);
+      color: var(--text);
+      font: inherit;
+      font-weight: 750;
+    }
+
+    .search-box input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(169, 255, 50, .12);
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      width: 18px;
+      height: 18px;
+      color: var(--muted);
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .categories {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    .category-button {
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 850;
+      cursor: pointer;
+    }
+
+    .category-button:hover,
+    .category-button.active {
+      border-color: var(--green);
+      background: rgba(169, 255, 50, .1);
+      color: var(--green);
+    }
+
     .games {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr));
@@ -171,6 +237,18 @@
     .game-card[data-id="snake"] { --card-accent: #9cff2e; }
     .game-card[data-id="invaders"] { --card-accent: #34e8ff; }
     .game-card[data-id="tower"] { --card-accent: #ffc857; }
+    .game-card[data-id="pacman"] { --card-accent: #ffe84a; }
+    .game-card[data-id="minecraft"] { --card-accent: #65c95f; }
+    .game-card[data-id="poker"] { --card-accent: #ff4f7b; }
+    .game-card[data-id="blackjack"] { --card-accent: #42d9ff; }
+    .game-card[data-id="spacewaves"] { --card-accent: #36e7ff; }
+    .game-card[data-id="doom"] { --card-accent: #ff623d; }
+    .game-card[data-id="emulator"] { --card-accent: #facc15; }
+    .game-card[data-id="minesweeper"] { --card-accent: #f97316; }
+    .game-card[data-id="pacman3d"] { --card-accent: #00d9ff; }
+    .game-card[data-id="mp3"] { --card-accent: #9b7cff; }
+    .game-card[data-id="paint"] { --card-accent: #38bdf8; }
+    .game-card[data-id="periodic"] { --card-accent: #34d399; }
 
     .game-card:hover {
       transform: translateY(-3px);
@@ -314,6 +392,142 @@
         #14200f;
     }
 
+    .pacman-art {
+      background:
+        radial-gradient(circle at 72% 33%, #ff4b7b 0 5%, transparent 5.5%),
+        radial-gradient(circle at 82% 52%, #30d8ff 0 5%, transparent 5.5%),
+        radial-gradient(circle at 68% 70%, #ff8c36 0 5%, transparent 5.5%),
+        repeating-linear-gradient(90deg, transparent 0 9%, rgba(255, 232, 74, .85) 9.5% 10.5%, transparent 11% 18%),
+        #05050f;
+    }
+
+    .pacman-art::before {
+      content: "";
+      position: absolute;
+      left: 18%;
+      top: 27%;
+      width: 26%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: conic-gradient(from 42deg, transparent 0 76deg, #ffe84a 77deg 360deg);
+      box-shadow: 0 0 24px rgba(255, 232, 74, .8);
+    }
+
+    .pacman-art::after {
+      content: "";
+      position: absolute;
+      left: 31%;
+      top: 35%;
+      width: 3.8%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: #05050f;
+    }
+
+    .minecraft-art {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      grid-template-rows: repeat(5, 1fr);
+      background: #152111;
+    }
+
+    .minecraft-art span {
+      background: var(--block);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.18);
+    }
+
+    .cards-art {
+      background:
+        radial-gradient(circle at 50% 105%, rgba(255,255,255,.13), transparent 38%),
+        #07140d;
+    }
+
+    .cards-art::before,
+    .cards-art::after {
+      content: "";
+      position: absolute;
+      top: 24%;
+      width: 25%;
+      aspect-ratio: .72;
+      border-radius: 10px;
+      background: #fffdf3;
+      box-shadow: 0 12px 24px rgba(0,0,0,.34);
+    }
+
+    .cards-art::before { left: 30%; transform: rotate(-13deg); }
+    .cards-art::after { right: 28%; transform: rotate(13deg); }
+
+    .cards-art span {
+      position: absolute;
+      z-index: 1;
+      color: #d92f45;
+      font: 950 clamp(32px, 6vw, 58px) / 1 ui-monospace, monospace;
+      text-shadow: 0 2px 0 rgba(0,0,0,.18);
+    }
+
+    .cards-art .left { left: 35%; top: 35%; transform: rotate(-13deg); }
+    .cards-art .right { right: 35%; top: 35%; transform: rotate(13deg); color: #111; }
+
+    .blackjack-art { background: radial-gradient(circle at 50% 95%, rgba(66,217,255,.24), transparent 40%), #071222; }
+
+    .spacewaves-art {
+      background:
+        radial-gradient(circle at 24% 48%, #a9ff32 0 4%, transparent 4.5%),
+        linear-gradient(64deg, transparent 0 44%, rgba(255,62,181,.95) 45% 54%, transparent 55%),
+        linear-gradient(116deg, transparent 0 44%, rgba(54,231,255,.9) 45% 54%, transparent 55%),
+        repeating-linear-gradient(90deg, rgba(54,231,255,.1) 0 2px, transparent 2px 42px),
+        #030611;
+    }
+
+    .spacewaves-art::before {
+      content: "";
+      position: absolute;
+      left: 18%;
+      top: 43%;
+      width: 12%;
+      aspect-ratio: 1.55;
+      clip-path: polygon(100% 50%, 0 0, 24% 50%, 0 100%);
+      background: #a9ff32;
+      box-shadow: 0 0 22px rgba(169,255,50,.85);
+    }
+
+    .doom-art {
+      background:
+        linear-gradient(180deg, rgba(5, 2, 0, .06), rgba(5, 2, 0, .88)),
+        url("Games/doom/doom-preview.png") center / cover,
+        radial-gradient(circle at 50% 35%, #5b1e14, #070302 62%);
+    }
+
+    .doom-art::after {
+      content: "DOOM";
+      position: absolute;
+      left: 22px;
+      bottom: 18px;
+      color: #fff3df;
+      font: 950 clamp(30px, 6vw, 64px) / .9 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: -.08em;
+      text-shadow: 0 5px 0 #7c150d, 0 0 18px rgba(255, 98, 61, .85);
+    }
+
+    .image-art {
+      background:
+        linear-gradient(180deg, rgba(5, 10, 19, .04), rgba(5, 10, 19, .82)),
+        var(--preview-image) center / cover,
+        var(--panel-2);
+    }
+
+    .image-art::after {
+      content: attr(data-label);
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 16px;
+      color: #fff;
+      font: 950 clamp(24px, 4vw, 42px) / .95 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: -.06em;
+      text-shadow: 0 4px 0 rgba(0,0,0,.65), 0 0 18px var(--card-accent);
+    }
+
     .mario-art {
       display: grid;
       place-items: end center;
@@ -394,6 +608,36 @@
       background: #08121a;
       border-radius: 6px;
       border: 2px solid rgba(255,255,255,0.03);
+    }
+
+    .mp3-art {
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 50% 46%, rgba(155, 124, 255, .55), transparent 25%),
+        repeating-linear-gradient(90deg, transparent 0 7%, rgba(82, 220, 255, .24) 7.5% 9%, transparent 9.5% 14%),
+        linear-gradient(135deg, #0d1028, #160b28 58%, #070912);
+    }
+
+    .mp3-art::before {
+      content: "";
+      width: 34%;
+      aspect-ratio: 1;
+      border: 8px solid #dcd6ff;
+      border-radius: 50%;
+      background: radial-gradient(circle, #050713 0 18%, #9b7cff 19% 29%, transparent 30%);
+      box-shadow: 0 0 26px rgba(155, 124, 255, .82);
+    }
+
+    .mp3-art::after {
+      content: "MP3";
+      position: absolute;
+      right: 24px;
+      bottom: 19px;
+      color: #dcd6ff;
+      font: 900 23px/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: .08em;
+      text-shadow: 0 0 12px rgba(155, 124, 255, .9);
     }
 
     .card-bar {
@@ -550,6 +794,7 @@
       .nav-button { width: auto; padding: 9px; }
       .nav-button span, .side-note, .playtime { display: none; }
       main { width: 100%; margin: 0; padding: 30px 18px 36px; }
+      .library-tools { margin-top: -4px; }
     }
 
     @media (max-width: 680px) {
@@ -568,9 +813,13 @@
     <aside class="sidebar">
       <div class="brand">MINI <span>PLAY</span></div>
       <nav class="nav" aria-label="Game browser">
-        <button class="nav-button active" data-view="library" type="button">
+        <button class="nav-button active" data-view="games" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9h12a4 4 0 0 1 3.8 5.3l-1.4 4.2a2 2 0 0 1-3.1 1l-2.1-1.5H8.8l-2.1 1.5a2 2 0 0 1-3.1-1l-1.4-4.2A4 4 0 0 1 6 9Z"/><path d="M8 13v4m-2-2h4m7-1h.01M15 16h.01M8 9l1-3h6l1 3"/></svg>
-          <span>Library</span>
+          <span>Game Library</span>
+        </button>
+        <button class="nav-button" data-view="apps" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>
+          <span>App Library</span>
         </button>
         <button class="nav-button" data-view="favorites" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg>
@@ -587,11 +836,27 @@
           <h1 id="heading">Game Library</h1>
           <p class="subtitle" id="subtitle">Pick a game and jump in.</p>
         </div>
-        <div class="view-count" id="viewCount">9 games</div>
+        <div class="view-count" id="viewCount">18 games</div>
       </header>
 
+      <section class="library-tools" id="gameTools" aria-label="Game filters">
+        <label class="search-box" for="gameSearch">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="gameSearch" type="search" placeholder="Search games..." autocomplete="off">
+        </label>
+        <div class="categories" aria-label="Game categories">
+          <button class="category-button active" data-category="all" type="button">All</button>
+          <button class="category-button" data-category="arcade" type="button">Arcade</button>
+          <button class="category-button" data-category="action" type="button">Action</button>
+          <button class="category-button" data-category="puzzle" type="button">Puzzle</button>
+          <button class="category-button" data-category="strategy" type="button">Strategy</button>
+          <button class="category-button" data-category="card" type="button">Card</button>
+          <button class="category-button" data-category="sandbox" type="button">Sandbox</button>
+        </div>
+      </section>
+
       <section class="games" id="games" aria-label="Games">
-        <article class="game-card" data-id="slope" data-game-id="1">
+        <article class="game-card" data-id="slope" data-type="game" data-category="arcade action" data-game-id="1">
           <button class="preview slope-art launch" type="button" aria-label="Play Slope"></button>
           <div class="card-bar">
             <div class="card-copy">
@@ -603,7 +868,7 @@
           </div>
         </article>
 
-        <article class="game-card" data-id="pong" data-game-id="2">
+        <article class="game-card" data-id="pong" data-type="game" data-category="arcade" data-game-id="2">
           <button class="preview pong-art launch" type="button" aria-label="Play Pong"><span class="pong-ball"></span></button>
           <div class="card-bar">
             <div class="card-copy">
@@ -615,7 +880,7 @@
           </div>
         </article>
 
-        <article class="game-card" data-id="breakout" data-game-id="3">
+        <article class="game-card" data-id="breakout" data-type="game" data-category="arcade" data-game-id="3">
           <button class="preview breakout-art launch" type="button" aria-label="Play Breakout">
             <span style="--brick:#27e7ff"></span><span style="--brick:#27e7ff"></span><span style="--brick:#27e7ff"></span><span style="--brick:#27e7ff"></span><span style="--brick:#27e7ff"></span><span style="--brick:#27e7ff"></span><span style="--brick:#27e7ff"></span><span style="--brick:#27e7ff"></span>
             <span style="--brick:#b44cff"></span><span style="--brick:#b44cff"></span><span style="--brick:#b44cff"></span><span style="--brick:#b44cff"></span><span style="--brick:#b44cff"></span><span style="--brick:#b44cff"></span><span style="--brick:#b44cff"></span><span style="--brick:#b44cff"></span>
@@ -631,7 +896,7 @@
           </div>
         </article>
 
-        <article class="game-card" data-id="mario" data-game-id="4">
+        <article class="game-card" data-id="mario" data-type="game" data-category="action arcade" data-game-id="4">
           <button class="preview mario-art launch" type="button" aria-label="Play Super Mario"><span class="mario-character">M</span></button>
           <div class="card-bar">
             <div class="card-copy">
@@ -643,7 +908,7 @@
           </div>
         </article>
 
-        <article class="game-card" data-id="wordle" data-game-id="5">
+        <article class="game-card" data-id="wordle" data-type="game" data-category="puzzle" data-game-id="5">
           <button class="preview wordle-art launch" type="button" aria-label="Play Wordle">
             <span class="tile"></span><span class="tile"></span><span class="tile"></span><span class="tile"></span><span class="tile"></span>
           </button>
@@ -657,7 +922,7 @@
           </div>
         </article>
 
-        <article class="game-card" data-id="tictactoe" data-game-id="6">
+        <article class="game-card" data-id="tictactoe" data-type="game" data-category="strategy puzzle" data-game-id="6">
           <button class="preview tictactoe-art launch" type="button" aria-label="Play Tic Tac Toe">
             <span class="cell"></span><span class="cell"></span><span class="cell"></span>
             <span class="cell"></span><span class="cell"></span><span class="cell"></span>
@@ -673,7 +938,7 @@
           </div>
         </article>
 
-        <article class="game-card" data-id="snake" data-game-id="7">
+        <article class="game-card" data-id="snake" data-type="game" data-category="arcade" data-game-id="7">
           <button class="preview snake-art launch" type="button" aria-label="Play Snake"></button>
           <div class="card-bar">
             <div class="card-copy"><span class="card-title">Snake</span><span class="card-detail">Speed and obstacle stages</span></div>
@@ -682,7 +947,7 @@
           </div>
         </article>
 
-        <article class="game-card" data-id="invaders" data-game-id="8">
+        <article class="game-card" data-id="invaders" data-type="game" data-category="arcade action" data-game-id="8">
           <button class="preview invaders-art launch" type="button" aria-label="Play Space Invaders"></button>
           <div class="card-bar">
             <div class="card-copy"><span class="card-title">Space Invaders</span><span class="card-detail">Escalating enemy waves</span></div>
@@ -691,12 +956,132 @@
           </div>
         </article>
 
-        <article class="game-card" data-id="tower" data-game-id="9">
+        <article class="game-card" data-id="tower" data-type="game" data-category="strategy action" data-game-id="9">
           <button class="preview tower-art launch" type="button" aria-label="Play Tower Defense"></button>
           <div class="card-bar">
             <div class="card-copy"><span class="card-title">Tower Defense</span><span class="card-detail">Build, upgrade, survive</span></div>
             <button class="icon-button favorite" type="button" aria-label="Favorite Tower Defense"></button>
             <button class="icon-button play-button launch" type="button" aria-label="Play Tower Defense"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="pacman" data-type="game" data-category="arcade" data-game-id="10">
+          <button class="preview pacman-art launch" type="button" aria-label="Play Pac-Man"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Pac-Man</span><span class="card-detail">Maze chase arcade classic</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Pac-Man"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Pac-Man"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="minecraft" data-type="game" data-category="sandbox action" data-game-id="11">
+          <button class="preview minecraft-art launch" type="button" aria-label="Play Minecraft">
+            <span style="--block:#76b852"></span><span style="--block:#6dae4d"></span><span style="--block:#7bc45a"></span><span style="--block:#5b9f45"></span><span style="--block:#77b852"></span><span style="--block:#69a74c"></span><span style="--block:#7ac15a"></span><span style="--block:#5c9e45"></span><span style="--block:#76b852"></span>
+            <span style="--block:#8a5a36"></span><span style="--block:#7b4c2b"></span><span style="--block:#9b633a"></span><span style="--block:#744525"></span><span style="--block:#865631"></span><span style="--block:#9a6038"></span><span style="--block:#774829"></span><span style="--block:#8b5731"></span><span style="--block:#734326"></span>
+            <span style="--block:#6f4428"></span><span style="--block:#5c351f"></span><span style="--block:#7a4a2a"></span><span style="--block:#684027"></span><span style="--block:#5a351f"></span><span style="--block:#734629"></span><span style="--block:#684026"></span><span style="--block:#58321e"></span><span style="--block:#75482a"></span>
+            <span style="--block:#777"></span><span style="--block:#666"></span><span style="--block:#858585"></span><span style="--block:#5f5f5f"></span><span style="--block:#7b7b7b"></span><span style="--block:#6b6b6b"></span><span style="--block:#838383"></span><span style="--block:#626262"></span><span style="--block:#757575"></span>
+            <span style="--block:#5b5b5b"></span><span style="--block:#4f4f4f"></span><span style="--block:#696969"></span><span style="--block:#565656"></span><span style="--block:#646464"></span><span style="--block:#4b4b4b"></span><span style="--block:#5f5f5f"></span><span style="--block:#565656"></span><span style="--block:#676767"></span>
+          </button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Minecraft</span><span class="card-detail">Eaglercraft block sandbox</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Minecraft"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Minecraft"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="poker" data-type="game" data-category="card strategy" data-game-id="12">
+          <button class="preview cards-art launch" type="button" aria-label="Play Poker"><span class="left">A♥</span><span class="right">K♠</span></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Poker</span><span class="card-detail">Five-card draw vs dealer</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Poker"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Poker"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="blackjack" data-type="game" data-category="card strategy" data-game-id="13">
+          <button class="preview cards-art blackjack-art launch" type="button" aria-label="Play Blackjack"><span class="left">A♦</span><span class="right">J♣</span></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Blackjack</span><span class="card-detail">Hit, stand, beat 21</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Blackjack"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Blackjack"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="spacewaves" data-type="game" data-category="arcade action" data-game-id="14">
+          <button class="preview spacewaves-art launch" type="button" aria-label="Play Space Waves"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Space Waves</span><span class="card-detail">One-button wave dodger</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Space Waves"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Space Waves"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="doom" data-type="game" data-category="action arcade" data-game-id="15">
+          <button class="preview doom-art launch" type="button" aria-label="Play Doom"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Doom</span><span class="card-detail">Classic demon shooter</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Doom"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Doom"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="emulator" data-type="game" data-category="sandbox arcade" data-game-id="16">
+          <button class="preview image-art launch" style="--preview-image:url('Games/emulator/emulator-preview.png')" data-label="EMU" type="button" aria-label="Open Emulator"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Emulator</span><span class="card-detail">Retro ROM player</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Emulator"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Open Emulator"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="minesweeper" data-type="game" data-category="puzzle strategy" data-game-id="17">
+          <button class="preview image-art launch" style="--preview-image:url('Games/minesweeper/minesweeper-preview.png')" data-label="MINES" type="button" aria-label="Play Minesweeper"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Minesweeper</span><span class="card-detail">Flag mines, clear the grid</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Minesweeper"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Minesweeper"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="pacman3d" data-type="game" data-category="arcade action" data-game-id="18">
+          <button class="preview image-art launch" style="--preview-image:url('Games/pacman/pacman-preview.png')" data-label="3D PAC" type="button" aria-label="Play Pac-Man 3D"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Pac-Man 3D</span><span class="card-detail">3D maze chase remake</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Pac-Man 3D"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Pac-Man 3D"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="mp3" data-type="app">
+          <button class="preview mp3-art launch" type="button" aria-label="Open MP3 Player"></button>
+          <div class="card-bar">
+            <div class="card-copy">
+              <span class="card-title">MP3 Player</span>
+              <span class="card-detail">Play local audio with visual modes</span>
+            </div>
+            <button class="icon-button play-button launch" type="button" aria-label="Open MP3 Player"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="paint" data-type="app">
+          <button class="preview image-art launch" style="--preview-image:url('Apps/paint/paint-preview.png')" data-label="PAINT" type="button" aria-label="Open Paint"></button>
+          <div class="card-bar">
+            <div class="card-copy">
+              <span class="card-title">Paint</span>
+              <span class="card-detail">Draw and sketch in-browser</span>
+            </div>
+            <button class="icon-button play-button launch" type="button" aria-label="Open Paint"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="periodic" data-type="app">
+          <button class="preview image-art launch" style="--preview-image:url('Apps/periodic-speller/periodic-speller-preview.png')" data-label="PERIODIC" type="button" aria-label="Open Periodic Speller"></button>
+          <div class="card-bar">
+            <div class="card-copy">
+              <span class="card-title">Periodic Speller</span>
+              <span class="card-detail">Spell words with element symbols</span>
+            </div>
+            <button class="icon-button play-button launch" type="button" aria-label="Open Periodic Speller"></button>
           </div>
         </article>
 
@@ -727,16 +1112,31 @@
 
   <script>
     const games = {
-      slope: { id: 1, title: "Slope", src: "slope/tee/index.html" },
-      pong: { id: 2, title: "Pong vs AI", src: "pong/index.html" },
-      breakout: { id: 3, title: "Breakout", src: "breakout/index.html" },
-      mario: { id: 4, title: "Super Mario", src: "FullScreenMario-master/index.html" },
-      wordle: { id: 5, title: "Wordle", src: "wordle/index.html" },
-      tictactoe: { id: 6, title: "Tic Tac Toe", src: "tictactoe/index.html" },
-      snake: { id: 7, title: "Snake", src: "snake/index.html" },
-      invaders: { id: 8, title: "Space Invaders", src: "space-invaders/index.html" },
-      tower: { id: 9, title: "Tower Defense", src: "tower-defense/index.html" }
+      slope: { id: 1, type: "game", title: "Slope", src: "Games/slope/tee/index.html" },
+      pong: { id: 2, type: "game", title: "Pong vs AI", src: "Games/pong/index.html" },
+      breakout: { id: 3, type: "game", title: "Breakout", src: "Games/breakout/index.html" },
+      mario: { id: 4, type: "game", title: "Super Mario", src: "Games/FullScreenMario-master/index.html" },
+      wordle: { id: 5, type: "game", title: "Wordle", src: "Games/wordle/index.html" },
+      tictactoe: { id: 6, type: "game", title: "Tic Tac Toe", src: "Games/tictactoe/index.html" },
+      snake: { id: 7, type: "game", title: "Snake", src: "Games/snake/index.html" },
+      invaders: { id: 8, type: "game", title: "Space Invaders", src: "Games/space-invaders/index.html" },
+      tower: { id: 9, type: "game", title: "Tower Defense", src: "Games/tower-defense/index.html" },
+      pacman: { id: 10, type: "game", title: "Pac-Man", src: "Games/pacman-master/index.html" },
+      minecraft: { id: 11, type: "game", title: "Minecraft", src: "Games/minecraft/index.html" },
+      poker: { id: 12, type: "game", title: "Poker", src: "Games/poker/index.html" },
+      blackjack: { id: 13, type: "game", title: "Blackjack", src: "Games/blackjack/index.html" },
+      spacewaves: { id: 14, type: "game", title: "Space Waves", src: "Games/space-waves/index.html" },
+      doom: { id: 15, type: "game", title: "Doom", src: "Games/doom/index.html" },
+      emulator: { id: 16, type: "game", title: "Emulator", src: "Games/emulator/index.html" },
+      minesweeper: { id: 17, type: "game", title: "Minesweeper", src: "Games/minesweeper/index.html" },
+      pacman3d: { id: 18, type: "game", title: "Pac-Man 3D", src: "Games/pacman/index.html" }
     };
+    const apps = {
+      mp3: { type: "app", title: "MP3 Player", src: "Apps/Mp3Player/index.html" },
+      paint: { type: "app", title: "Paint", src: "Apps/paint/index.html" },
+      periodic: { type: "app", title: "Periodic Speller", src: "Apps/periodic-speller/index.html" }
+    };
+    const libraryItems = { ...games, ...apps };
     const star = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg>';
     const play = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 5 11 7-11 7V5Z"/></svg>';
     const favoriteCookie = document.cookie.split("; ").find(cookie => cookie.startsWith("favorites="));
@@ -749,8 +1149,13 @@
     const player = document.querySelector("#player");
     const stage = document.querySelector("#stage");
     const playerTitle = document.querySelector("#playerTitle");
+    const gameTools = document.querySelector("#gameTools");
+    const gameSearch = document.querySelector("#gameSearch");
+    const categoryButtons = [...document.querySelectorAll(".category-button")];
     let currentGame = null;
-    let activeView = "library";
+    let activeView = "games";
+    let activeCategory = "all";
+    let searchTerm = "";
 
     document.querySelectorAll(".favorite").forEach(button => button.innerHTML = star);
     document.querySelectorAll(".play-button").forEach(button => button.innerHTML = play);
@@ -793,23 +1198,44 @@
     function updateView() {
       let visible = 0;
       cards.forEach(card => {
-        const show = activeView === "library" || favorites.has(card.dataset.gameId);
+        const isFavorite = card.dataset.gameId && favorites.has(card.dataset.gameId);
+        const type = card.dataset.type || "game";
+        const title = card.querySelector(".card-title")?.textContent.toLowerCase() || "";
+        const detail = card.querySelector(".card-detail")?.textContent.toLowerCase() || "";
+        const categories = (card.dataset.category || "").split(/\s+/).filter(Boolean);
+        const matchesSearch = !searchTerm || title.includes(searchTerm) || detail.includes(searchTerm);
+        const matchesCategory = activeCategory === "all" || categories.includes(activeCategory);
+        const show =
+          activeView === "games" ? type === "game" && matchesSearch && matchesCategory :
+          activeView === "apps" ? type === "app" :
+          isFavorite;
         card.hidden = !show;
-        card.querySelector(".favorite").classList.toggle("on", favorites.has(card.dataset.gameId));
+        const favoriteButton = card.querySelector(".favorite");
+        if (favoriteButton) favoriteButton.classList.toggle("on", isFavorite);
         if (show) visible++;
       });
-      document.querySelector("#heading").textContent = activeView === "library" ? "Game Library" : "Favorites";
-      document.querySelector("#subtitle").textContent = activeView === "library" ? "Pick a game and jump in." : "Your saved games, ready to launch.";
-      document.querySelector("#viewCount").textContent = `${visible} game${visible === 1 ? "" : "s"}`;
-      document.querySelector("#empty").classList.toggle("show", activeView === "favorites" && visible === 0);
+      const copy = {
+        games: ["Game Library", "Pick a game and jump in.", "game"],
+        apps: ["App Library", "Useful apps for the mini browser.", "app"],
+        favorites: ["Favorites", "Your saved games, ready to launch.", "game"]
+      }[activeView];
+      document.querySelector("#heading").textContent = copy[0];
+      document.querySelector("#subtitle").textContent = copy[1];
+      document.querySelector("#viewCount").textContent = `${visible} ${copy[2]}${visible === 1 ? "" : "s"}`;
+      gameTools.hidden = activeView !== "games";
+      document.querySelector("#empty").textContent = activeView === "games" ? "No games match that search or category." : "No favorites yet. Use the star on a game to add one.";
+      document.querySelector("#empty").classList.toggle("show", (activeView === "favorites" || activeView === "games") && visible === 0);
       document.querySelectorAll(".nav-button").forEach(button => button.classList.toggle("active", button.dataset.view === activeView));
+      categoryButtons.forEach(button => button.classList.toggle("active", button.dataset.category === activeCategory));
     }
 
     function launch(id, requestBrowserFullscreen = false) {
       currentGame = id;
-      startPlaytime();
-      const game = games[id];
-      playerTitle.textContent = game.title;
+      const item = libraryItems[id];
+      if (!item) return;
+      if (item.type === "game") startPlaytime();
+      else stopPlaytime();
+      playerTitle.textContent = item.title;
       stage.replaceChildren();
       player.classList.add("windowed");
       player.style.left = "50%";
@@ -825,10 +1251,10 @@
         return;
       }
       const frame = document.createElement("iframe");
-      frame.src = game.src;
-      frame.title = game.title;
+      frame.src = item.src;
+      frame.title = item.title;
       frame.setAttribute("allowfullscreen", "");
-      frame.setAttribute("sandbox", "allow-scripts allow-same-origin");
+      frame.setAttribute("allow", "fullscreen");
       stage.append(frame);
       // adjust player size to iframe content when available
       frame.addEventListener('load', () => {
@@ -872,7 +1298,9 @@
 
     cards.forEach(card => {
       card.querySelectorAll(".launch").forEach(button => button.addEventListener("click", () => launch(card.dataset.id, false)));
-      card.querySelector(".favorite").addEventListener("click", () => {
+      const favoriteButton = card.querySelector(".favorite");
+      if (!favoriteButton) return;
+      favoriteButton.addEventListener("click", () => {
         const gameId = card.dataset.gameId;
         favorites.has(gameId) ? favorites.delete(gameId) : favorites.add(gameId);
         saveFavorites();
@@ -882,6 +1310,16 @@
 
     document.querySelectorAll(".nav-button").forEach(button => button.addEventListener("click", () => {
       activeView = button.dataset.view;
+      updateView();
+    }));
+
+    gameSearch.addEventListener("input", () => {
+      searchTerm = gameSearch.value.trim().toLowerCase();
+      updateView();
+    });
+
+    categoryButtons.forEach(button => button.addEventListener("click", () => {
+      activeCategory = button.dataset.category;
       updateView();
     }));
 
@@ -910,7 +1348,7 @@
 
     document.querySelector("#reloadButton").addEventListener("click", () => {
       const frame = stage.querySelector("iframe");
-      if (frame) frame.src = games[currentGame].src;
+      if (frame && libraryItems[currentGame]) frame.src = libraryItems[currentGame].src;
     });
 
     const fullscreenButton = document.querySelector("#fullscreenButton");
@@ -979,8 +1417,8 @@
     window.addEventListener("pagehide", stopPlaytime);
     savePlaytime();
     updateView();
-    const linkedGame = location.hash.slice(1);
-    if (games[linkedGame]) launch(linkedGame);
+    const linkedItem = location.hash.slice(1);
+    if (libraryItems[linkedItem]) launch(linkedItem);
   </script>
 </body>
 </html>
