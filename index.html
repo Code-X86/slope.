@@ -149,6 +149,11 @@
     }
 
     .game-card[data-id="pong"] { --card-accent: #30d8ff; }
+    .game-card[data-id="mario"] { --card-accent: #ff5349; }
+    .game-card[data-id="breakout"] { --card-accent: #ff3bbd; }
+    .game-card[data-id="snake"] { --card-accent: #9cff2e; }
+    .game-card[data-id="invaders"] { --card-accent: #34e8ff; }
+    .game-card[data-id="tower"] { --card-accent: #ffc857; }
 
     .game-card:hover {
       transform: translateY(-3px);
@@ -220,6 +225,123 @@
       border-radius: 50%;
       background: #30d8ff;
       box-shadow: 0 0 18px #30d8ff;
+    }
+
+    .breakout-art {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      align-content: start;
+      gap: 5px;
+      padding: 24px 28px;
+      background:
+        radial-gradient(circle at 50% 90%, rgba(255, 59, 189, .22), transparent 38%),
+        #050515;
+    }
+
+    .breakout-art span {
+      height: 12px;
+      border-radius: 3px;
+      background: var(--brick, #27e7ff);
+      box-shadow: 0 0 9px var(--brick, #27e7ff);
+    }
+
+    .breakout-art::before {
+      content: "";
+      position: absolute;
+      left: 39%;
+      bottom: 12%;
+      width: 22%;
+      height: 6px;
+      border-radius: 4px;
+      background: #e9fdff;
+      box-shadow: 0 0 12px #27e7ff;
+    }
+
+    .breakout-art::after {
+      content: "";
+      position: absolute;
+      left: 63%;
+      bottom: 34%;
+      width: 12px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: #ff3bbd;
+      box-shadow: 0 0 13px #ff3bbd;
+    }
+
+    .snake-art {
+      background:
+        radial-gradient(circle at 76% 32%, #ff477e 0 3%, transparent 3.5%),
+        linear-gradient(90deg, transparent 0 20%, #9cff2e 20% 28%, transparent 28% 34%, #9cff2e 34% 42%, transparent 42% 48%, #9cff2e 48% 56%, transparent 56%),
+        repeating-linear-gradient(90deg, transparent 0 9.5%, rgba(156,255,46,.12) 10%),
+        repeating-linear-gradient(0deg, transparent 0 18%, rgba(156,255,46,.12) 19%),
+        #031008;
+    }
+
+    .invaders-art {
+      background:
+        radial-gradient(circle at 50% 82%, #34e8ff 0 3%, transparent 3.5%),
+        repeating-linear-gradient(90deg, transparent 0 9%, #ff4fb8 9.5% 13%, transparent 13.5% 18%),
+        repeating-linear-gradient(90deg, transparent 0 7%, #8cff42 7.5% 11%, transparent 11.5% 16%),
+        radial-gradient(circle at 50% 100%, #162b55, #02050e 58%);
+      background-size: auto, 100% 15%, 100% 15%, auto;
+      background-position: center, center 28%, center 48%, center;
+      background-repeat: no-repeat, repeat-x, repeat-x, no-repeat;
+    }
+
+    .tower-art {
+      background:
+        radial-gradient(circle at 28% 25%, #64d8ff 0 6%, #253c5e 6.5% 11%, transparent 11.5%),
+        radial-gradient(circle at 70% 72%, #64d8ff 0 6%, #253c5e 6.5% 11%, transparent 11.5%),
+        linear-gradient(25deg, transparent 0 40%, #b99d62 41% 56%, transparent 57%),
+        #14200f;
+    }
+
+    .mario-art {
+      display: grid;
+      place-items: end center;
+      background: linear-gradient(180deg, #54b4ff 0 66%, #d9782b 66% 72%, #a84f1c 72% 100%);
+    }
+
+    .mario-art::before {
+      content: "";
+      position: absolute;
+      left: 11%;
+      bottom: 28%;
+      width: 17%;
+      height: 25%;
+      background:
+        linear-gradient(90deg, transparent 0 25%, #fff 25% 75%, transparent 75%),
+        linear-gradient(#fff 0 46%, transparent 46%);
+      opacity: .82;
+    }
+
+    .mario-art::after {
+      content: "?";
+      position: absolute;
+      right: 19%;
+      top: 27%;
+      display: grid;
+      place-items: center;
+      width: 18%;
+      aspect-ratio: 1;
+      border: 4px solid #8b451a;
+      background: #f4a62a;
+      color: #fff5c6;
+      font: 900 clamp(28px, 5vw, 58px) / 1 ui-monospace, monospace;
+      text-shadow: 3px 3px #8b451a;
+      box-shadow: inset 0 0 0 5px #ffc84d;
+    }
+
+    .mario-character {
+      position: relative;
+      z-index: 1;
+      margin-bottom: 10%;
+      color: #ff3028;
+      font-size: clamp(48px, 7vw, 82px);
+      font-weight: 900;
+      text-shadow: 5px 5px #7d251d, 9px 9px rgba(0, 0, 0, .28);
+      transform: rotate(-6deg);
     }
 
     .game-card[data-id="wordle"] { --card-accent: #ffd166; }
@@ -346,7 +468,7 @@
       top: 50%;
       left: 50%;
       width: min(1100px, 94vw);
-      height: min(80vh, 720px);
+      height: min(90vh, 820px);
       transform: translate(-50%, -50%);
       border-radius: 12px;
       box-shadow: 0 30px 80px rgba(0,0,0,0.6);
@@ -447,11 +569,11 @@
           <h1 id="heading">Game Library</h1>
           <p class="subtitle" id="subtitle">Pick a game and jump in.</p>
         </div>
-        <div class="view-count" id="viewCount">2 games</div>
+        <div class="view-count" id="viewCount">9 games</div>
       </header>
 
       <section class="games" id="games" aria-label="Games">
-        <article class="game-card" data-id="slope">
+        <article class="game-card" data-id="slope" data-game-id="1">
           <button class="preview slope-art launch" type="button" aria-label="Play Slope"></button>
           <div class="card-bar">
             <div class="card-copy">
@@ -463,7 +585,7 @@
           </div>
         </article>
 
-        <article class="game-card" data-id="pong">
+        <article class="game-card" data-id="pong" data-game-id="2">
           <button class="preview pong-art launch" type="button" aria-label="Play Pong"><span class="pong-ball"></span></button>
           <div class="card-bar">
             <div class="card-copy">
@@ -475,7 +597,35 @@
           </div>
         </article>
 
-        <article class="game-card" data-id="wordle">
+        <article class="game-card" data-id="breakout" data-game-id="3">
+          <button class="preview breakout-art launch" type="button" aria-label="Play Breakout">
+            <span style="--brick:#27e7ff"></span><span style="--brick:#27e7ff"></span><span style="--brick:#27e7ff"></span><span style="--brick:#27e7ff"></span><span style="--brick:#27e7ff"></span><span style="--brick:#27e7ff"></span><span style="--brick:#27e7ff"></span><span style="--brick:#27e7ff"></span>
+            <span style="--brick:#b44cff"></span><span style="--brick:#b44cff"></span><span style="--brick:#b44cff"></span><span style="--brick:#b44cff"></span><span style="--brick:#b44cff"></span><span style="--brick:#b44cff"></span><span style="--brick:#b44cff"></span><span style="--brick:#b44cff"></span>
+            <span style="--brick:#ff3bbd"></span><span style="--brick:#ff3bbd"></span><span style="--brick:#ff3bbd"></span><span style="--brick:#ff3bbd"></span><span style="--brick:#ff3bbd"></span><span style="--brick:#ff3bbd"></span><span style="--brick:#ff3bbd"></span><span style="--brick:#ff3bbd"></span>
+          </button>
+          <div class="card-bar">
+            <div class="card-copy">
+              <span class="card-title">Breakout</span>
+              <span class="card-detail">5 levels · 3 difficulties</span>
+            </div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Breakout"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Breakout"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="mario" data-game-id="4">
+          <button class="preview mario-art launch" type="button" aria-label="Play Super Mario"><span class="mario-character">M</span></button>
+          <div class="card-bar">
+            <div class="card-copy">
+              <span class="card-title">Super Mario</span>
+              <span class="card-detail">Classic platform adventure</span>
+            </div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Super Mario"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Super Mario"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="wordle" data-game-id="5">
           <button class="preview wordle-art launch" type="button" aria-label="Play Wordle">
             <span class="tile"></span><span class="tile"></span><span class="tile"></span><span class="tile"></span><span class="tile"></span>
           </button>
@@ -489,7 +639,7 @@
           </div>
         </article>
 
-        <article class="game-card" data-id="tictactoe">
+        <article class="game-card" data-id="tictactoe" data-game-id="6">
           <button class="preview tictactoe-art launch" type="button" aria-label="Play Tic Tac Toe">
             <span class="cell"></span><span class="cell"></span><span class="cell"></span>
             <span class="cell"></span><span class="cell"></span><span class="cell"></span>
@@ -502,6 +652,33 @@
             </div>
             <button class="icon-button favorite" type="button" aria-label="Favorite Tic Tac Toe"></button>
             <button class="icon-button play-button launch" type="button" aria-label="Play Tic Tac Toe"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="snake" data-game-id="7">
+          <button class="preview snake-art launch" type="button" aria-label="Play Snake"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Snake</span><span class="card-detail">Speed and obstacle stages</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Snake"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Snake"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="invaders" data-game-id="8">
+          <button class="preview invaders-art launch" type="button" aria-label="Play Space Invaders"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Space Invaders</span><span class="card-detail">Escalating enemy waves</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Space Invaders"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Space Invaders"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="tower" data-game-id="9">
+          <button class="preview tower-art launch" type="button" aria-label="Play Tower Defense"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Tower Defense</span><span class="card-detail">Build, upgrade, survive</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Tower Defense"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Tower Defense"></button>
           </div>
         </article>
 
@@ -532,14 +709,20 @@
 
   <script>
     const games = {
-      slope: { title: "Slope", src: "slope/tee/index.html" },
-      pong: { title: "Pong vs AI", src: "pong/index.html" },
-      wordle: { title: "Wordle", src: "wordle/index.html" },
-      tictactoe: { title: "Tic Tac Toe", src: "tictactoe/index.html" }
+      slope: { id: 1, title: "Slope", src: "slope/tee/index.html" },
+      pong: { id: 2, title: "Pong vs AI", src: "pong/index.html" },
+      breakout: { id: 3, title: "Breakout", src: "breakout/index.html" },
+      mario: { id: 4, title: "Super Mario", src: "FullScreenMario-master/index.html" },
+      wordle: { id: 5, title: "Wordle", src: "wordle/index.html" },
+      tictactoe: { id: 6, title: "Tic Tac Toe", src: "tictactoe/index.html" },
+      snake: { id: 7, title: "Snake", src: "snake/index.html" },
+      invaders: { id: 8, title: "Space Invaders", src: "space-invaders/index.html" },
+      tower: { id: 9, title: "Tower Defense", src: "tower-defense/index.html" }
     };
     const star = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg>';
     const play = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 5 11 7-11 7V5Z"/></svg>';
-    const favorites = new Set(JSON.parse(localStorage.getItem("mini-play-favorites") || "[]"));
+    const favoriteCookie = document.cookie.split("; ").find(cookie => cookie.startsWith("favorites="));
+    const favorites = new Set((favoriteCookie ? favoriteCookie.slice("favorites=".length) : "").split(",").filter(id => /^\d+$/.test(id)));
     const cards = [...document.querySelectorAll(".game-card")];
     const player = document.querySelector("#player");
     const stage = document.querySelector("#stage");
@@ -550,12 +733,17 @@
     document.querySelectorAll(".favorite").forEach(button => button.innerHTML = star);
     document.querySelectorAll(".play-button").forEach(button => button.innerHTML = play);
 
+    function saveFavorites() {
+      const value = [...favorites].sort((a, b) => Number(a) - Number(b)).join(",");
+      document.cookie = `favorites=${value}; path=/; max-age=31536000; SameSite=Lax`;
+    }
+
     function updateView() {
       let visible = 0;
       cards.forEach(card => {
-        const show = activeView === "library" || favorites.has(card.dataset.id);
+        const show = activeView === "library" || favorites.has(card.dataset.gameId);
         card.hidden = !show;
-        card.querySelector(".favorite").classList.toggle("on", favorites.has(card.dataset.id));
+        card.querySelector(".favorite").classList.toggle("on", favorites.has(card.dataset.gameId));
         if (show) visible++;
       });
       document.querySelector("#heading").textContent = activeView === "library" ? "Game Library" : "Favorites";
@@ -570,6 +758,13 @@
       const game = games[id];
       playerTitle.textContent = game.title;
       stage.replaceChildren();
+      player.classList.add("windowed");
+      player.style.left = "50%";
+      player.style.top = "50%";
+      player.style.transform = "translate(-50%, -50%)";
+      const defaultWindowButton = document.querySelector("#windowButton");
+      defaultWindowButton.classList.add("on");
+      defaultWindowButton.querySelector("span").textContent = "Exit";
       if (id === "slope" && location.protocol === "file:") {
         stage.innerHTML = '<div class="server-message"><div><h2>Slope needs a local server</h2><p>Browsers block Unity build files when this page is opened directly from disk. Run this command in the website folder, then open <strong>http://localhost:8000</strong>.</p><code>python3 -m http.server 8000</code></div></div>';
         player.hidden = false;
@@ -602,7 +797,7 @@
         const paddingW = 40; // leave some room for chrome
         const paddingH = 80;
         const maxW = Math.min(1100, window.innerWidth - 32);
-        const maxH = Math.min(window.innerHeight * 0.8, 720);
+        const maxH = Math.min(window.innerHeight * 0.9, 820);
         const minW = 360;
         const minH = 240;
         const targetW = Math.round(Math.min(maxW, Math.max(minW, contentW + paddingW)));
@@ -625,8 +820,9 @@
     cards.forEach(card => {
       card.querySelectorAll(".launch").forEach(button => button.addEventListener("click", () => launch(card.dataset.id, false)));
       card.querySelector(".favorite").addEventListener("click", () => {
-        favorites.has(card.dataset.id) ? favorites.delete(card.dataset.id) : favorites.add(card.dataset.id);
-        localStorage.setItem("mini-play-favorites", JSON.stringify([...favorites]));
+        const gameId = card.dataset.gameId;
+        favorites.has(gameId) ? favorites.delete(gameId) : favorites.add(gameId);
+        saveFavorites();
         updateView();
       });
     });
@@ -680,9 +876,16 @@
         fullscreenButton.classList.toggle("on", isFs);
         const label = fullscreenButton.querySelector("span");
         if (label) label.textContent = isFs ? "Exit" : "Fullscreen";
-        // exiting fullscreen should also clear windowed state
         if (!isFs) {
-          player.classList.remove('windowed');
+          player.classList.add("windowed");
+          player.style.left = "50%";
+          player.style.top = "50%";
+          player.style.transform = "translate(-50%, -50%)";
+          const frame = stage.querySelector("iframe");
+          if (frame) adjustPlayerToIframe(frame);
+          windowButton.classList.add("on");
+          const windowLabel = windowButton.querySelector("span");
+          if (windowLabel) windowLabel.textContent = "Exit";
         }
       });
     }

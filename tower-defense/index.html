@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tower Defense</title>
+  <style>
+    :root { color-scheme: dark; --gold: #ffc857; --cyan: #64d8ff; --line: #3b4431; --muted: #a2aa98; }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body { display: grid; place-items: center; padding: 12px; background: radial-gradient(circle at 50% 35%, #26331b, #080c07 72%); color: #f8fff0; font-family: system-ui, sans-serif; }
+    main { width: min(100%, 1100px); height: min(100%, 800px); display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 8px; }
+    header, .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .brand { color: var(--gold); font-size: 25px; font-weight: 950; text-shadow: 0 0 18px #ffb52c; }
+    .stats { display: flex; gap: 24px; color: var(--muted); font-size: 10px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+    .stats b { display: block; color: white; font-size: 14px; text-align: center; }
+    .toolbar { padding: 7px 9px; border: 1px solid var(--line); border-radius: 9px; background: #10190d; }
+    .actions { display: flex; gap: 7px; }
+    .tower-picks, .map-picks { display: flex; gap: 6px; }
+    .map-picks { margin: 16px 0; }
+    .map-picks button { flex: 1; }
+    .status { min-width: 0; overflow: hidden; color: var(--muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    button { padding: 9px 13px; border: 1px solid var(--line); border-radius: 7px; background: #172314; color: #c9d0c2; font-weight: 800; cursor: pointer; }
+    button:hover, button.active { border-color: var(--gold); color: var(--gold); }
+    button.active { background: #30270f; }
+    button:disabled { opacity: .4; cursor: not-allowed; }
+    .board { position: relative; min-height: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: #14200f; }
+    canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+    .overlay { position: absolute; inset: 0; display: none; place-items: center; background: #071006d8; backdrop-filter: blur(6px); }
+    .overlay.show { display: grid; }
+    .menu { width: min(90%, 480px); padding: 30px; border: 1px solid var(--line); border-radius: 15px; background: #111b0e; text-align: center; }
+    h1 { margin: 0; color: var(--gold); font-size: 52px; letter-spacing: -.07em; }
+    .menu p { color: var(--muted); line-height: 1.5; }
+    .primary { width: 100%; background: var(--gold); color: #181205; border-color: var(--gold); }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="brand">TOWER DEFENSE</div>
+      <div class="stats">
+        <span>Gold<b id="gold">250</b></span>
+        <span>Level<b id="level">1</b></span>
+        <span>Wave<b id="wave">0</b></span>
+        <span>Base<b id="base">20</b></span>
+      </div>
+    </header>
+    <section class="toolbar">
+      <div class="actions">
+        <div class="tower-picks">
+          <button class="active tower-choice" data-tower="basic">Scout · 50</button>
+          <button class="tower-choice" data-tower="rapid">Rapid · 75</button>
+          <button class="tower-choice" data-tower="cannon">Cannon · 100</button>
+        </div>
+        <button id="startWave">Start Wave</button>
+        <button id="pause">Pause</button>
+      </div>
+      <span class="status" id="status">Start defense, then click grass to place towers.</span>
+    </section>
+    <section class="board">
+      <canvas id="canvas" width="1000" height="600"></canvas>
+      <div class="overlay show" id="overlay">
+        <div class="menu">
+          <h1 id="title">Defend</h1>
+          <p id="message">Choose a map, build different towers, and survive five waves per level.</p>
+          <div class="map-picks">
+            <button class="active map-choice" data-map="0">Switchback</button>
+            <button class="map-choice" data-map="1">Spiral</button>
+            <button class="map-choice" data-map="2">Crossroads</button>
+          </div>
+          <button class="primary" id="start">Start defense</button>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script>
+    const canvas = document.querySelector("#canvas");
+    const ctx = canvas.getContext("2d");
+    const overlay = document.querySelector("#overlay");
+    const status = document.querySelector("#status");
+    const waveButton = document.querySelector("#startWave");
+    const maps = [
+      [{ x: -20, y: 110 }, { x: 220, y: 110 }, { x: 220, y: 300 }, { x: 520, y: 300 }, { x: 520, y: 130 }, { x: 790, y: 130 }, { x: 790, y: 470 }, { x: 1020, y: 470 }],
+      [{ x: -20, y: 500 }, { x: 170, y: 500 }, { x: 170, y: 100 }, { x: 820, y: 100 }, { x: 820, y: 480 }, { x: 360, y: 480 }, { x: 360, y: 270 }, { x: 1020, y: 270 }],
+      [{ x: -20, y: 300 }, { x: 260, y: 300 }, { x: 260, y: 90 }, { x: 500, y: 90 }, { x: 500, y: 510 }, { x: 750, y: 510 }, { x: 750, y: 300 }, { x: 1020, y: 300 }]
+    ];
+    const towerTypes = {
+      basic: { label: "Scout", cost: 50, damage: 24, range: 145, delay: .7, color: "#64d8ff", shot: "#ffc857" },
+      rapid: { label: "Rapid", cost: 75, damage: 13, range: 125, delay: .25, color: "#9cff4b", shot: "#9cff4b" },
+      cannon: { label: "Cannon", cost: 100, damage: 58, range: 170, delay: 1.25, color: "#ff8b45", shot: "#ff8b45", splash: 55 }
+    };
+    let selectedMap = 0, path = maps[0], selectedTower = "basic";
+    let towers = [], enemies = [], shots = [];
+    let gold = 250, wave = 0, level = 1, base = 20;
+    let running = false, paused = false, buildMode = true, spawning = 0, spawnTimer = 0;
+    let pointer = { x: 0, y: 0, inside: false };
+    let last = performance.now();
+
+    function updateHud() {
+      document.querySelector("#gold").textContent = gold;
+      document.querySelector("#level").textContent = level;
+      document.querySelector("#wave").textContent = wave;
+      document.querySelector("#base").textContent = base;
+      waveButton.disabled = !running || spawning > 0 || enemies.length > 0;
+    }
+
+    function setStatus(text, bad = false) {
+      status.textContent = text;
+      status.style.color = bad ? "#ff7770" : "";
+    }
+
+    function startGame() {
+      path = maps[selectedMap];
+      towers = []; enemies = []; shots = [];
+      gold = 250; wave = 0; level = 1; base = 20; spawning = 0;
+      running = true; paused = false; buildMode = true;
+      overlay.classList.remove("show");
+      setStatus(`${towerTypes[selectedTower].label} selected. Click open grass to build.`);
+      updateHud();
+    }
+
+    function startWave() {
+      if (!running || spawning || enemies.length) return;
+      wave++;
+      level = Math.floor((wave - 1) / 5) + 1;
+      spawning = 8 + wave * 3 + level * 2;
+      spawnTimer = 0;
+      setStatus(`Level ${level}, wave ${wave}: ${spawning} enemies incoming.`);
+      updateHud();
+    }
+
+    function nearPath(px, py) {
+      for (let i = 0; i < path.length - 1; i++) {
+        const a = path[i], b = path[i + 1], dx = b.x - a.x, dy = b.y - a.y;
+        const t = Math.max(0, Math.min(1, ((px - a.x) * dx + (py - a.y) * dy) / (dx * dx + dy * dy)));
+        if (Math.hypot(px - (a.x + t * dx), py - (a.y + t * dy)) < 48) return true;
+      }
+      return false;
+    }
+
+    function canPlace(px, py) {
+      return !nearPath(px, py) && px > 28 && px < 972 && py > 28 && py < 572 && !towers.some(t => Math.hypot(t.x - px, t.y - py) < 55);
+    }
+
+    function canvasPoint(event) {
+      const rect = canvas.getBoundingClientRect();
+      return { x: (event.clientX - rect.left) * 1000 / rect.width, y: (event.clientY - rect.top) * 600 / rect.height };
+    }
+
+    canvas.addEventListener("pointermove", event => {
+      pointer = { ...canvasPoint(event), inside: true };
+    });
+    canvas.addEventListener("pointerleave", () => pointer.inside = false);
+    canvas.addEventListener("pointerdown", event => {
+      if (!running) return;
+      const p = canvasPoint(event);
+      const tower = towers.find(t => Math.hypot(t.x - p.x, t.y - p.y) < 28);
+      if (tower) {
+        if (gold < 60) return setStatus("You need 60 gold to upgrade this tower.", true);
+        gold -= 60; tower.level++; tower.damage += 18; tower.range += 12;
+        setStatus(`Tower upgraded to level ${tower.level}.`);
+      } else if (buildMode) {
+        const type = towerTypes[selectedTower];
+        if (gold < type.cost) return setStatus(`You need ${type.cost} gold to build a ${type.label} tower.`, true);
+        if (!canPlace(p.x, p.y)) return setStatus("Invalid location. Place towers on open grass away from the path.", true);
+        gold -= type.cost;
+        towers.push({ x: p.x, y: p.y, type: selectedTower, level: 1, damage: type.damage, range: type.range, delay: type.delay, cool: 0 });
+        setStatus(`${type.label} tower built. Click more grass to build another.`);
+      }
+      updateHud();
+    });
+
+    function update(dt) {
+      if (!running || paused) return;
+      if (spawning) {
+        spawnTimer -= dt;
+        if (spawnTimer <= 0) {
+          const tier = Math.min(8, Math.floor((wave - 1) / 2));
+          const hp = 42 + wave * 22 + tier * tier * 18;
+          const shade = Math.max(18, 60 - tier * 6);
+          enemies.push({ x: path[0].x, y: path[0].y, node: 1, hp, max: hp, speed: 52 + wave * 2.8, r: 11 + tier * 1.8, color: `hsl(112 65% ${shade}%)`, reward: 10 + tier * 3 });
+          spawning--; spawnTimer = Math.max(.24, .62 - wave * .012);
+        }
+      }
+      enemies.forEach(enemy => {
+        const target = path[enemy.node], dx = target.x - enemy.x, dy = target.y - enemy.y, distance = Math.hypot(dx, dy);
+        if (distance < enemy.speed * dt) {
+          enemy.x = target.x; enemy.y = target.y; enemy.node++;
+          if (enemy.node >= path.length) { enemy.dead = true; base--; }
+        } else { enemy.x += dx / distance * enemy.speed * dt; enemy.y += dy / distance * enemy.speed * dt; }
+      });
+      towers.forEach(tower => {
+        tower.cool -= dt;
+        if (tower.cool <= 0) {
+          const target = enemies.find(enemy => !enemy.dead && Math.hypot(enemy.x - tower.x, enemy.y - tower.y) < tower.range);
+          if (target) {
+            const type = towerTypes[tower.type];
+            shots.push({ x: tower.x, y: tower.y, target, damage: tower.damage, speed: 500, color: type.shot, splash: type.splash || 0 });
+            tower.cool = tower.delay / (1 + (tower.level - 1) * .25);
+          }
+        }
+      });
+      shots.forEach(shot => {
+        if (shot.target.dead) return shot.dead = true;
+        const dx = shot.target.x - shot.x, dy = shot.target.y - shot.y, distance = Math.hypot(dx, dy);
+        if (distance < shot.speed * dt) {
+          const victims = shot.splash ? enemies.filter(enemy => !enemy.dead && Math.hypot(enemy.x - shot.target.x, enemy.y - shot.target.y) <= shot.splash) : [shot.target];
+          victims.forEach(enemy => {
+            enemy.hp -= shot.damage;
+            if (enemy.hp <= 0 && !enemy.dead) { enemy.dead = true; gold += enemy.reward; }
+          });
+          shot.dead = true;
+        } else { shot.x += dx / distance * shot.speed * dt; shot.y += dy / distance * shot.speed * dt; }
+      });
+      enemies = enemies.filter(enemy => !enemy.dead);
+      shots = shots.filter(shot => !shot.dead);
+      if (!spawning && !enemies.length && wave > 0) setStatus(`Wave ${wave} cleared. Build or upgrade, then start the next wave.`);
+      if (base <= 0) {
+        running = false;
+        document.querySelector("#title").textContent = "Base lost";
+        document.querySelector("#message").textContent = `You survived ${wave} waves.`;
+        document.querySelector("#start").textContent = "Try again";
+        overlay.classList.add("show");
+      }
+      updateHud();
+    }
+
+    function draw() {
+      ctx.fillStyle = "#14200f"; ctx.fillRect(0, 0, 1000, 600);
+      ctx.strokeStyle = "#7d6940"; ctx.lineWidth = 58; ctx.lineCap = "round"; ctx.lineJoin = "round";
+      ctx.beginPath(); ctx.moveTo(path[0].x, path[0].y); path.slice(1).forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
+      ctx.strokeStyle = "#b99d62"; ctx.lineWidth = 44; ctx.stroke();
+      towers.forEach(tower => {
+        const type = towerTypes[tower.type];
+        ctx.fillStyle = "#253c5e"; ctx.beginPath(); ctx.arc(tower.x, tower.y, 20, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = type.color; ctx.lineWidth = 4; ctx.stroke();
+        ctx.fillStyle = "#ffc857"; ctx.font = "bold 12px system-ui"; ctx.fillText(tower.level, tower.x - 3, tower.y + 4);
+      });
+      if (running && buildMode && pointer.inside) {
+        const type = towerTypes[selectedTower];
+        const valid = canPlace(pointer.x, pointer.y) && gold >= type.cost;
+        ctx.fillStyle = valid ? "#64d8ff66" : "#ff615c66";
+        ctx.strokeStyle = valid ? "#64d8ff" : "#ff615c";
+        ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(pointer.x, pointer.y, 22, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = valid ? "#64d8ff55" : "#ff615c44"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(pointer.x, pointer.y, type.range, 0, Math.PI * 2); ctx.stroke();
+      }
+      enemies.forEach(enemy => {
+        ctx.fillStyle = enemy.color; ctx.beginPath(); ctx.arc(enemy.x, enemy.y, enemy.r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#111"; ctx.fillRect(enemy.x - 16, enemy.y - 22, 32, 4);
+        ctx.fillStyle = "#8dff55"; ctx.fillRect(enemy.x - 16, enemy.y - 22, 32 * enemy.hp / enemy.max, 4);
+      });
+      shots.forEach(shot => { ctx.fillStyle = shot.color; ctx.beginPath(); ctx.arc(shot.x, shot.y, shot.splash ? 6 : 4, 0, Math.PI * 2); ctx.fill(); });
+    }
+
+    function loop(now) {
+      update(Math.min(.03, (now - last) / 1000)); last = now; draw(); requestAnimationFrame(loop);
+    }
+    document.querySelector("#start").addEventListener("click", startGame);
+    document.querySelectorAll(".tower-choice").forEach(button => button.addEventListener("click", () => {
+      selectedTower = button.dataset.tower;
+      buildMode = true;
+      document.querySelectorAll(".tower-choice").forEach(choice => choice.classList.toggle("active", choice === button));
+      setStatus(`${towerTypes[selectedTower].label} selected. Click open grass to build.`);
+    }));
+    document.querySelectorAll(".map-choice").forEach(button => button.addEventListener("click", () => {
+      if (running) return;
+      selectedMap = Number(button.dataset.map);
+      path = maps[selectedMap];
+      document.querySelectorAll(".map-choice").forEach(choice => choice.classList.toggle("active", choice === button));
+    }));
+    waveButton.addEventListener("click", startWave);
+    document.querySelector("#pause").addEventListener("click", event => {
+      if (!running) return; paused = !paused; event.currentTarget.textContent = paused ? "Resume" : "Pause";
+    });
+    updateHud();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
