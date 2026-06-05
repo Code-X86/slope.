@@ -270,6 +270,7 @@ body:not(.clean):not(.picker-mode) #flavorPicker {
 .clean .brand h1 .sub,
 .clean .hero .tagline,
 .clean .hero .fineprint,
+.clean #cleanLaunchBtn,
 .clean #flavorPicker {
   display: none !important;
 }

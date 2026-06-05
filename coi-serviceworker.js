@@ -8,13 +8,14 @@
     if (window.crossOriginIsolated || !('serviceWorker' in navigator)) return;
     if (window.isSecureContext === false && location.hostname !== '127.0.0.1' && location.hostname !== 'localhost') return;
 
+    var coiVersion = '20260604-doom-classic';
     var reloadKey = 'mini-play-coi-reload';
     var scriptUrl = document.currentScript ? document.currentScript.src : new URL('coi-serviceworker.js', location.href).href;
     var scopeUrl = new URL('./', scriptUrl).href;
     navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl }).then(function () {
-      if (navigator.serviceWorker.controller) return;
-      if (sessionStorage.getItem(reloadKey)) return;
-      sessionStorage.setItem(reloadKey, '1');
+      if (window.crossOriginIsolated) return;
+      if (sessionStorage.getItem(reloadKey) === coiVersion) return;
+      sessionStorage.setItem(reloadKey, coiVersion);
       navigator.serviceWorker.ready.then(function () {
         location.reload();
       });
@@ -38,6 +39,10 @@
     event.respondWith(fetch(event.request).then(function (response) {
       if (
         response.status === 0 ||
+        response.status < 200 ||
+        response.status === 204 ||
+        response.status === 205 ||
+        response.status === 304 ||
         response.type === 'opaque' ||
         response.type === 'opaqueredirect'
       ) {

@@ -1,13 +1,8 @@
 // Flavor controller. URL modes:
 //   ?manual=1        → bail; full uzdoom-loader picker UI takes over.
 //   ?flavor=classic  → auto-prime original DOOM (doom.wad fetched
-//                      from CDN); hero button launches.
-//   ?flavor=freedoom → auto-prime bundled Freedoom; hero button
-//                      launches.
-//   ?flavor=legend   → auto-prime Freedoom + LoD pk3; hero button
-//                      launches.
-//   (default)        → flavor picker is the user gesture; click a
-//                      card to prime + launch the chosen flavor.
+//                      from CDN), then launch immediately.
+//   (default)        → same as ?flavor=classic.
 //
 // The picker click is itself the user gesture for the chosen flavor,
 // which means AudioContext / fullscreen unlock the same way they
@@ -18,12 +13,8 @@
   var params = new URLSearchParams(window.location.search);
   if (params.get('manual') === '1') return;
 
-  // GA helper for the DOOM flavor funnel. We want to know which
-  // flavor users pick (Classic / Freedoom / Legend), how often the
-  // engine actually boots vs bails during the multi-MB load, and
-  // which flavor + which entry path (picker click vs ?flavor=NAME
-  // auto-launch). analytics.js exposes window.trackEvent globally;
-  // it no-ops on localhost.
+  // GA helper for the DOOM launch funnel. analytics.js exposes
+  // window.trackEvent globally; it no-ops on localhost.
   function trackDoomEvent(name, label, value) {
     if (typeof window.trackEvent !== 'function') return;
     window.trackEvent(name, 'DoomFlavor', label, value);
@@ -37,85 +28,13 @@
   var CLASSIC_WAD_URL = 'https://console-doom.netlify.app/data/doom.wad';
   var CLASSIC_WAD_NAME = 'doom.wad';
 
-  // ?v=ogg cache-buster on the LoD pk3 — see legend-of-doom
-  // history. The bytes at LegendOfDoom-1.1.0.pk3 were swapped
-  // in-place from MP3 to Ogg Vorbis (UZDoom WASM can't decode
-  // MP3); old caches still hold the MP3 version. Bump the query
-  // string forces a fresh fetch without renaming the file on disk.
   var FLAVORS = {
     classic: {
       title: 'Classic DOOM',
-      tagline: 'The original 1993 DOOM, running in your browser.',
-      launchLabel: 'Launch Classic DOOM',
+      tagline: 'The original 1993 DOOM, loading in your browser.',
+      launchLabel: 'Starting Classic DOOM',
       iwadUrl: CLASSIC_WAD_URL,
       iwadName: CLASSIC_WAD_NAME,
-      modUrl: null,
-      modName: null
-    },
-    freedoom: {
-      title: 'Freedoom',
-      tagline: 'Freedoom Phase 1 (open-source DOOM clone), running in your browser.',
-      launchLabel: 'Launch Freedoom',
-      iwadUrl: null,
-      iwadName: null,
-      modUrl: null,
-      modName: null
-    },
-    legend: {
-      title: 'Legend of DOOM',
-      tagline: 'The Legend of DOOM mod, running in your browser.',
-      launchLabel: 'Launch Legend of DOOM',
-      iwadUrl: null,
-      iwadName: null,
-      modUrl: 'LegendOfDoom-1.1.0.pk3?v=ogg',
-      modName: 'LegendOfDoom-1.1.0.pk3'
-    },
-    // Mario DOOM — Valigarmander's MarioDoom gameplay PK3 layered
-    // over Freedoom Phase 1. Source pk3 is the GZDoom-family build
-    // (works in UZDoom directly); the doomworld "vanilla edition"
-    // patch is for chocolate/prboom users and is not what we want
-    // here. Bundled in /doom/ rather than fetched from doomshack
-    // to avoid CORS surprises and to keep cold-start fast.
-    mario: {
-      title: 'Mario DOOM',
-      tagline: 'MarioDoom by Valigarmander, running in your browser.',
-      launchLabel: 'Launch Mario DOOM',
-      iwadUrl: null,
-      iwadName: null,
-      modUrl: 'mariodoom.pk3',
-      modName: 'mariodoom.pk3'
-    },
-    // Metroid DOOM — Spram's Metroidvania total conversion (v2.2,
-    // OkDoomer174 bugfix release). This is a Doom 2-family mod
-    // (originally built on TNT Evilution; author confirmed
-    // doom2.wad works fine; v2 even self-detects as Plutonia). We
-    // route it to the bundled freedoom2.wad so it doesn't need
-    // any side-loaded commercial IWAD. Single-PK3 format makes
-    // it a clean drop-in.
-    metroid: {
-      title: 'Metroid DOOM',
-      tagline: "Spram's Metroid DOOM Metroidvania, running in your browser.",
-      launchLabel: 'Launch Metroid DOOM',
-      iwadUrl: null,
-      iwadName: null,
-      bundledIwad: 'freedoom2.wad',
-      modUrl: 'met2.pk3',
-      modName: 'met2.pk3'
-    },
-    // Castlevania: Simon's Destiny — Batandy's standalone GZDoom-
-    // family total conversion. Unlike Mario/Metroid/Legend (which
-    // layer a PK3 on top of Freedoom), this one IS the IWAD —
-    // Castlevania.ipk3 self-identifies as the game. Same code path
-    // as Classic DOOM (cfg.iwadUrl branch in resolveIwad), no
-    // bundledIwad and no separate modUrl. Note: moddb pulled the
-    // mod page in 2024 (likely Konami DMCA); the file we ship is
-    // the v1.4 that the author still hosts on itch.io.
-    castlevania: {
-      title: 'Castlevania: Simon\u2019s Destiny',
-      tagline: 'Castlevania: Simon\u2019s Destiny by Batandy, running in your browser.',
-      launchLabel: 'Launch Castlevania',
-      iwadUrl: 'Castlevania.ipk3',
-      iwadName: 'Castlevania.ipk3',
       modUrl: null,
       modName: null
     }
@@ -136,8 +55,8 @@
 
   // Streaming fetch with byte-level progress callbacks. Used by
   // both the IWAD and mod fetches so the user gets a real
-  // progress bar during the 73 MB Castlevania download (and
-  // every other multi-MB flavor). Falls back to non-streaming
+  // progress bar during the multi-MB Classic IWAD download.
+  // Falls back to non-streaming
   // arrayBuffer() if the body isn't readable, which is unusual
   // on modern browsers but worth handling so the page doesn't
   // hard-fail on some exotic transport.
@@ -332,13 +251,8 @@
 
   // Resolve the IWAD descriptor for primeWith. Either fetch a
   // remote .wad (Classic DOOM) and hand the loader the bytes, or
-  // hand it one of the bundled Freedoom references (no fetch
-  // needed). Both freedoom1.wad (Doom 1 IWAD) and freedoom2.wad
-  // (Doom 2 IWAD) are preloaded into the WASM virtual filesystem
-  // — see uzdoom-loader.js BUNDLED_IWADS. Doom 2-family mods
-  // (e.g. Spram's Metroid Doom, Plutonia mapsets) require the
-  // Doom 2 IWAD; Doom 1-family (e.g. Legend of Doom) need
-  // freedoom1.
+  // hand it one of the bundled Freedoom references in manual code
+  // paths. Classic normally fetches the original shareware IWAD.
   async function resolveIwad(cfg, onProgress) {
     if (cfg.iwadUrl) {
       var data = await fetchWithProgress(cfg.iwadUrl, onProgress);
@@ -428,42 +342,29 @@
     var emoji = document.getElementById('brandEmoji');
     var title = document.getElementById('brandTitle');
     var tagline = document.getElementById('heroTagline');
-    if (flavor === 'legend') {
-      if (emoji) emoji.textContent = '🗡️';
-      if (title) title.firstChild.textContent = 'Legend of DOOM';
-    } else if (flavor === 'classic') {
+    if (flavor === 'classic') {
       if (emoji) emoji.textContent = '💀';
       if (title) title.firstChild.textContent = 'Classic DOOM';
-    } else if (flavor === 'freedoom') {
-      if (emoji) emoji.textContent = '👹';
-      if (title) title.firstChild.textContent = 'Freedoom';
-    } else if (flavor === 'mario') {
-      if (emoji) emoji.textContent = '🍄';
-      if (title) title.firstChild.textContent = 'Mario DOOM';
-    } else if (flavor === 'metroid') {
-      if (emoji) emoji.textContent = '🛸';
-      if (title) title.firstChild.textContent = 'Metroid DOOM';
-    } else if (flavor === 'castlevania') {
-      if (emoji) emoji.textContent = '🦇';
-      if (title) title.firstChild.textContent = 'Castlevania';
     }
     if (tagline) tagline.textContent = cfg.tagline;
   }
 
-  // Hero button (clean / ?flavor=... mode): subscribe to lifecycle,
-  // click forwards to UZDoomLoader.launch().
-  function wireHeroButton(flavor) {
+  // Hero status (clean / ?flavor=... mode): subscribe to lifecycle
+  // and mirror boot progress while Classic starts automatically.
+  function wireHeroStatus(flavor) {
     var btn = document.getElementById('cleanLaunchBtn');
-    if (!btn) return;
+    if (!btn) return null;
     var cfg = FLAVORS[flavor];
     var hero = document.getElementById('cleanHero');
     var ui = attachLoadInfo(hero);
     var mirrorStarted = false;
+    btn.disabled = true;
+    btn.textContent = (cfg && cfg.launchLabel) || 'Starting';
     if (window.UZDoomLifecycle) {
       window.UZDoomLifecycle.subscribe(function (state) {
         if (state.phase === 'primed') {
-          btn.textContent = (cfg && cfg.launchLabel) || 'Launch';
-          btn.disabled = false;
+          btn.textContent = 'Starting…';
+          btn.disabled = true;
         } else if (state.phase === 'launching') {
           btn.textContent = 'Loading…';
           btn.disabled = true;
@@ -482,11 +383,6 @@
         }
       });
     }
-    btn.addEventListener('click', function () {
-      if (window.UZDoomLifecycle && window.UZDoomLifecycle.get() !== 'primed') return;
-      trackDoomEvent('doom_engine_launched', flavor + ':autolaunch');
-      if (window.UZDoomLoader) window.UZDoomLoader.launch();
-    });
     return ui;
   }
 
@@ -565,8 +461,7 @@
 
         // Attach the inline progress UI to this card. The UI
         // gets driven first by primeFlavor's byte-level fetch
-        // callbacks (real determinate bar across the ~73 MB
-        // Castlevania download), then by mirrorEngineStatus
+        // callbacks, then by mirrorEngineStatus
         // (indeterminate bar with live engine-boot text).
         var ui = attachLoadInfo(card);
         if (ui) ui.set('Preparing…', null);
@@ -614,12 +509,12 @@
     });
   }
 
-  // Auto-launch path (?flavor=NAME): prime in the background, hero
-  // button enables on `primed`, user clicks it to launch.
+  // Auto-launch path (?flavor=NAME): prime in the background, then
+  // immediately launch Classic when the engine is ready.
   async function autoLaunch(flavor) {
     trackDoomEvent('doom_flavor_pick', flavor + ':autolaunch');
     applyFlavorBranding(flavor);
-    var ui = wireHeroButton(flavor);
+    var ui = wireHeroStatus(flavor);
     if (ui) ui.set('Preparing…', null);
     try {
       await primeFlavor(flavor, function (p) {
@@ -627,7 +522,10 @@
         var pct = p.total ? (p.loaded / p.total) * 100 : null;
         ui.set(formatPrimeProgress(p), pct);
       });
-      if (ui) ui.set('Ready — click Launch.', 100);
+      if (ui) ui.set('Starting engine…', null);
+      mirrorEngineStatus(ui);
+      trackDoomEvent('doom_engine_launched', flavor + ':autolaunch');
+      if (window.UZDoomLoader) window.UZDoomLoader.launch();
     } catch (e) {
       console.warn('[flavor auto-launch] priming failed:', e);
       if (ui) ui.set('Failed: ' + String(e.message || e), 0);
@@ -668,7 +566,7 @@
   //      while the engine is running. Hidden until lifecycle hits
   //      `playing`; opts.revealOnPlaying = true.
   //
-  // Both menus carry identical items: 3 flavors + a "Manual mode"
+  // Menus carry Classic plus manual/custom modes.
   // option that navigates to ?manual=1. We don't try to hot-swap
   // inside the running engine — uz-doom doesn't expose a clean
   // "swap IWAD/PK3" call and the wasm runtime would have to be
@@ -692,19 +590,13 @@
     function isManualMode() {
       return params.get('manual') === '1';
     }
-    function isModdbMode() {
-      return params.get('manual') === 'browse';
-    }
-
     function paintActive() {
       var active = activeFlavor();
       var manual = isManualMode();
-      var moddb = isModdbMode();
       menu.querySelectorAll('button[data-switch]').forEach(function (b) {
         var s = b.dataset.switch;
         var match;
         if (s === 'manual') match = manual;
-        else if (s === 'moddb') match = moddb;
         else match = s === active;
         if (match) {
           b.dataset.active = 'true';
@@ -751,10 +643,6 @@
         window.location.search = 'manual=1';
         return;
       }
-      if (f === 'moddb') {
-        window.location.search = 'manual=browse';
-        return;
-      }
       if (!FLAVORS[f]) return;
       window.location.search = 'flavor=' + encodeURIComponent(f);
     });
@@ -796,12 +684,9 @@
     // "Use custom IWAD / mods…" link). Hidden in non-picker modes
     // via body.clean / body:not(.picker-mode) CSS.
     wireFlavorSwitcher('flavorPickerSwitcher');
-    var flavor = params.get('flavor');
-    if (flavor && FLAVORS[flavor]) {
-      autoLaunch(flavor);
-    } else {
-      wireFlavorPicker();
-    }
+    var flavor = params.get('flavor') || 'classic';
+    if (!FLAVORS[flavor]) flavor = 'classic';
+    autoLaunch(flavor);
   }
 
   if (document.readyState === 'loading') {
