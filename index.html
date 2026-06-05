@@ -248,6 +248,16 @@
     .game-card[data-id="pacman3d"] { --card-accent: #00d9ff; }
     .game-card[data-id="connectfour"] { --card-accent: #facc15; }
     .game-card[data-id="cookieclicker"] { --card-accent: #d97706; }
+    .game-card[data-id="boxelrebound"] { --card-accent: #de5ced; }
+    .game-card[data-id="baldisbasics"] { --card-accent: #9ef01a; }
+    .game-card[data-id="paperio"] { --card-accent: #38bdf8; }
+    .game-card[data-id="flappybird"] { --card-accent: #facc15; }
+    .game-card[data-id="solitaire"] { --card-accent: #ef4444; }
+    .game-card[data-id="subwaysurfers"] { --card-accent: #22d3ee; }
+    .game-card[data-id="chromedino"] { --card-accent: #a3a3a3; }
+    .game-card[data-id="typingtest"] { --card-accent: #facc15; }
+    .game-card[data-id="crossyroad"] { --card-accent: #84cc16; }
+    .game-card[data-id="holeio"] { --card-accent: #a855f7; }
     .game-card[data-id="mp3"] { --card-accent: #9b7cff; }
     .game-card[data-id="paint"] { --card-accent: #38bdf8; }
     .game-card[data-id="periodic"] { --card-accent: #34d399; }
@@ -528,6 +538,148 @@
       font: 950 clamp(24px, 4vw, 42px) / .95 ui-monospace, SFMono-Regular, Consolas, monospace;
       letter-spacing: -.06em;
       text-shadow: 0 4px 0 rgba(0,0,0,.65), 0 0 18px var(--card-accent);
+    }
+
+    .connectfour-art {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 7px;
+      padding: 20px 24px;
+      background:
+        radial-gradient(circle at 82% 22%, rgba(250, 204, 21, .34), transparent 24%),
+        linear-gradient(135deg, #0f2f85, #07152f);
+    }
+
+    .connectfour-art span {
+      border-radius: 50%;
+      background: var(--disc, #0a1227);
+      box-shadow: inset 0 7px 0 rgba(255,255,255,.12), inset 0 -8px 0 rgba(0,0,0,.3), 0 0 0 3px rgba(3,9,23,.5);
+    }
+
+    .subway-art {
+      background:
+        linear-gradient(82deg, transparent 0 44%, rgba(255,255,255,.95) 44.5% 46%, transparent 46.5%),
+        linear-gradient(98deg, transparent 0 54%, rgba(255,255,255,.95) 54.5% 56%, transparent 56.5%),
+        repeating-linear-gradient(0deg, transparent 0 13px, rgba(255, 207, 64, .8) 14px 17px, transparent 18px 34px),
+        linear-gradient(180deg, #5ed2ff 0 36%, #243241 37% 100%);
+      overflow: hidden;
+    }
+
+    .subway-art::before {
+      content: "";
+      position: absolute;
+      left: 18%;
+      right: 18%;
+      bottom: -12%;
+      height: 70%;
+      clip-path: polygon(37% 0, 63% 0, 100% 100%, 0 100%);
+      background: linear-gradient(90deg, #222833 0 18%, #f3f4f6 19% 24%, #252c38 25% 75%, #f3f4f6 76% 81%, #222833 82%);
+      box-shadow: 0 -18px 40px rgba(0,0,0,.22);
+    }
+
+    .subway-art::after {
+      content: "";
+      position: absolute;
+      left: 39%;
+      bottom: 26%;
+      width: 22%;
+      height: 22%;
+      border-radius: 9px 9px 4px 4px;
+      background: linear-gradient(180deg, #facc15 0 34%, #ef4444 35% 100%);
+      box-shadow: 0 0 22px rgba(250,204,21,.65);
+    }
+
+    .typing-art {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      align-content: end;
+      gap: 5px;
+      padding: 28px 25px;
+      background:
+        radial-gradient(circle at 50% 24%, rgba(250,204,21,.28), transparent 28%),
+        repeating-linear-gradient(90deg, rgba(250,204,21,.11) 0 1px, transparent 1px 26px),
+        #0b1020;
+    }
+
+    .typing-art span {
+      height: 18px;
+      border-radius: 5px;
+      background: color-mix(in srgb, var(--key, #facc15) 78%, #0b1020);
+      box-shadow: inset 0 -4px 0 rgba(0,0,0,.28), 0 0 12px color-mix(in srgb, var(--key, #facc15) 32%, transparent);
+    }
+
+    .typing-art::before {
+      content: "WPM";
+      position: absolute;
+      left: 22px;
+      top: 20px;
+      color: #fef3c7;
+      font: 950 clamp(28px, 5vw, 52px) / .9 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: -.08em;
+      text-shadow: 0 0 18px rgba(250,204,21,.72);
+    }
+
+    .crossy-art {
+      background:
+        repeating-linear-gradient(0deg, #29313a 0 18%, #f8fafc 18.5% 20%, #29313a 20.5% 37%, #69b34c 37.5% 55%),
+        #69b34c;
+    }
+
+    .crossy-art::before {
+      content: "";
+      position: absolute;
+      left: 18%;
+      top: 45%;
+      width: 18%;
+      height: 14%;
+      border-radius: 6px;
+      background: #ef4444;
+      box-shadow: 9rem -.8rem 0 #38bdf8, 4.8rem 3.1rem 0 #facc15;
+    }
+
+    .crossy-art::after {
+      content: "";
+      position: absolute;
+      left: 46%;
+      bottom: 18%;
+      width: 10%;
+      aspect-ratio: 1;
+      border-radius: 6px 6px 2px 2px;
+      background: #fff7ed;
+      box-shadow: 0 -8px 0 #ef4444, 0 0 18px rgba(255,255,255,.65);
+    }
+
+    .holeio-art {
+      background:
+        radial-gradient(circle at 50% 64%, #02030a 0 16%, rgba(2,3,10,.7) 17%, transparent 29%),
+        radial-gradient(circle at 50% 64%, rgba(168,85,247,.78), transparent 34%),
+        linear-gradient(180deg, #1c1140 0 52%, #22243a 53% 100%);
+    }
+
+    .holeio-art::before {
+      content: "";
+      position: absolute;
+      left: 15%;
+      right: 15%;
+      bottom: 36%;
+      height: 28%;
+      background:
+        linear-gradient(90deg, #38bdf8 0 10%, transparent 10% 15%, #f97316 15% 27%, transparent 27% 34%, #e5e7eb 34% 48%, transparent 48% 56%, #22c55e 56% 69%, transparent 69% 75%, #facc15 75% 88%, transparent 88%);
+      clip-path: polygon(0 100%, 0 34%, 8% 34%, 8% 8%, 18% 8%, 18% 58%, 29% 58%, 29% 24%, 42% 24%, 42% 0, 56% 0, 56% 48%, 67% 48%, 67% 17%, 79% 17%, 79% 66%, 91% 66%, 91% 35%, 100% 35%, 100% 100%);
+      opacity: .92;
+    }
+
+    .holeio-art::after {
+      content: "";
+      position: absolute;
+      left: 39%;
+      top: 48%;
+      width: 22%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: radial-gradient(circle, #000 0 54%, #35105f 55% 70%, rgba(168,85,247,.18) 71% 100%);
+      box-shadow: 0 0 28px rgba(168,85,247,.9);
     }
 
     .mario-art {
@@ -857,7 +1009,7 @@
           <h1 id="heading">Game Library</h1>
           <p class="subtitle" id="subtitle">Pick a game and jump in.</p>
         </div>
-        <div class="view-count" id="viewCount">20 games</div>
+        <div class="view-count" id="viewCount">30 games</div>
       </header>
 
       <section class="library-tools" id="gameTools" aria-label="Game filters">
@@ -1075,7 +1227,12 @@
         </article>
 
         <article class="game-card" data-id="connectfour" data-type="game" data-category="strategy puzzle" data-game-id="19">
-          <button class="preview image-art launch" data-label="CONNECT 4" type="button" aria-label="Play Connect Four"></button>
+          <button class="preview connectfour-art launch" type="button" aria-label="Play Connect Four">
+            <span style="--disc:#ef4444"></span><span></span><span style="--disc:#facc15"></span><span></span><span style="--disc:#ef4444"></span><span></span><span></span>
+            <span></span><span style="--disc:#facc15"></span><span style="--disc:#ef4444"></span><span></span><span style="--disc:#facc15"></span><span></span><span></span>
+            <span style="--disc:#ef4444"></span><span style="--disc:#facc15"></span><span style="--disc:#facc15"></span><span style="--disc:#ef4444"></span><span style="--disc:#ef4444"></span><span></span><span></span>
+            <span style="--disc:#facc15"></span><span style="--disc:#ef4444"></span><span style="--disc:#facc15"></span><span style="--disc:#ef4444"></span><span style="--disc:#facc15"></span><span style="--disc:#ef4444"></span><span></span>
+          </button>
           <div class="card-bar">
             <div class="card-copy"><span class="card-title">Connect Four</span><span class="card-detail">Drop discs against the AI</span></div>
             <button class="icon-button favorite" type="button" aria-label="Favorite Connect Four"></button>
@@ -1089,6 +1246,100 @@
             <div class="card-copy"><span class="card-title">Cookie Clicker</span><span class="card-detail">Bake cookies and buy upgrades</span></div>
             <button class="icon-button favorite" type="button" aria-label="Favorite Cookie Clicker"></button>
             <button class="icon-button play-button launch" type="button" aria-label="Play Cookie Clicker"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="boxelrebound" data-type="game" data-category="arcade action" data-game-id="21">
+          <button class="preview image-art launch" style="--preview-image:url('Games/boxel-rebound/Newer/img/banner.png')" data-label="BOXEL" type="button" aria-label="Play Boxel Rebound"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Boxel Rebound</span><span class="card-detail">Fast cube platforming</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Boxel Rebound"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Boxel Rebound"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="baldisbasics" data-type="game" data-category="action strategy" data-game-id="22">
+          <button class="preview image-art launch" style="--preview-image:url('Games/baldis-basics/baldis-basics.png')" data-label="BALDI" type="button" aria-label="Play Baldi's Basics"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Baldi's Basics</span><span class="card-detail">Schoolhouse escape challenge</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Baldi's Basics"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Baldi's Basics"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="paperio" data-type="game" data-category="arcade action" data-game-id="23">
+          <button class="preview image-art launch" style="--preview-image:url('Games/paperio2/images/logo.png')" data-label="PAPER.IO" type="button" aria-label="Play Paper.io 2"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Paper.io 2</span><span class="card-detail">Claim territory and survive</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Paper.io 2"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Paper.io 2"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="flappybird" data-type="game" data-category="arcade" data-game-id="24">
+          <button class="preview image-art launch" style="--preview-image:url('Games/flappy-bird/assets/thumb.png')" data-label="FLAPPY" type="button" aria-label="Play Flappy Bird"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Flappy Bird</span><span class="card-detail">Tap through the pipes</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Flappy Bird"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Flappy Bird"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="solitaire" data-type="game" data-category="card strategy" data-game-id="25">
+          <button class="preview image-art launch" style="--preview-image:url('Games/ms-solitaire/unnamed.png')" data-label="SOLITAIRE" type="button" aria-label="Play Solitaire"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Solitaire</span><span class="card-detail">Classic Klondike cards</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Solitaire"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Solitaire"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="subwaysurfers" data-type="game" data-category="arcade action" data-game-id="26">
+          <button class="preview subway-art launch" type="button" aria-label="Play Subway Surfers"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Subway Surfers</span><span class="card-detail">Unity endless runner</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Subway Surfers"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Subway Surfers"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="chromedino" data-type="game" data-category="arcade" data-game-id="27">
+          <button class="preview image-art launch" style="--preview-image:url('Games/chrome-dino/images/default_100_percent/100-error-offline.png')" data-label="DINO" type="button" aria-label="Play Chrome Dino"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Chrome Dino</span><span class="card-detail">Offline runner classic</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Chrome Dino"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Chrome Dino"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="typingtest" data-type="game" data-category="puzzle" data-game-id="28">
+          <button class="preview typing-art launch" type="button" aria-label="Open Typing Test">
+            <span></span><span></span><span style="--key:#38bdf8"></span><span></span><span></span><span></span><span style="--key:#38bdf8"></span><span></span><span></span><span></span>
+            <span></span><span style="--key:#facc15"></span><span></span><span></span><span style="--key:#facc15"></span><span></span><span></span><span></span><span style="--key:#facc15"></span><span></span>
+            <span></span><span></span><span></span><span style="--key:#ef4444"></span><span style="--key:#ef4444"></span><span style="--key:#ef4444"></span><span style="--key:#ef4444"></span><span></span><span></span><span></span>
+          </button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Typing Test</span><span class="card-detail">Speed and accuracy practice</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Typing Test"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Open Typing Test"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="crossyroad" data-type="game" data-category="arcade action" data-game-id="29">
+          <button class="preview crossy-art launch" type="button" aria-label="Play Crossy Road"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Crossy Road</span><span class="card-detail">Dodge traffic and keep crossing</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Crossy Road"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Crossy Road"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="holeio" data-type="game" data-category="arcade action" data-game-id="30">
+          <button class="preview holeio-art launch" type="button" aria-label="Play Hole.io"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Hole.io</span><span class="card-detail">Swallow the city and grow</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Hole.io"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Hole.io"></button>
           </div>
         </article>
 
@@ -1166,7 +1417,7 @@
       tower: { id: 9, type: "game", title: "Tower Defense", src: "Games/tower-defense/index.html" },
       pacman: { id: 10, type: "game", title: "Pac-Man", src: "Games/pacman-master/index.html" },
       minecraft: { id: 11, type: "game", title: "Minecraft", src: "Games/minecraft/index.html" },
-      poker: { id: 12, type: "game", title: "Poker", src: "Games/poker/index.html" },
+      poker: { id: 12, type: "game", title: "Poker", src: "Games/poker/poker.html" },
       blackjack: { id: 13, type: "game", title: "Blackjack", src: "Games/blackjack/index.html" },
       spacewaves: { id: 14, type: "game", title: "Space Waves", src: "Games/space-waves/index.html" },
       doom: { id: 15, type: "game", title: "Doom", src: "Games/doom/index.html" },
@@ -1174,7 +1425,17 @@
       minesweeper: { id: 17, type: "game", title: "Minesweeper", src: "Games/minesweeper/index.html" },
       pacman3d: { id: 18, type: "game", title: "Pac-Man 3D", src: "Games/pacman/index.html" },
       connectfour: { id: 19, type: "game", title: "Connect Four", src: "Games/connect-four/index.html" },
-      cookieclicker: { id: 20, type: "game", title: "Cookie Clicker", src: "Games/cookie-clicker/index.html" }
+      cookieclicker: { id: 20, type: "game", title: "Cookie Clicker", src: "Games/cookie-clicker/index.html" },
+      boxelrebound: { id: 21, type: "game", title: "Boxel Rebound", src: "Games/boxel-rebound/Newer/index.html" },
+      baldisbasics: { id: 22, type: "game", title: "Baldi's Basics", src: "Games/baldis-basics/index.html" },
+      paperio: { id: 23, type: "game", title: "Paper.io 2", src: "Games/paperio2/index.html" },
+      flappybird: { id: 24, type: "game", title: "Flappy Bird", src: "Games/flappy-bird/index.html" },
+      solitaire: { id: 25, type: "game", title: "Solitaire", src: "Games/ms-solitaire/index.html" },
+      subwaysurfers: { id: 26, type: "game", title: "Subway Surfers", src: "Games/subway-surfers-unity/index.html" },
+      chromedino: { id: 27, type: "game", title: "Chrome Dino", src: "Games/chrome-dino/index.html" },
+      typingtest: { id: 28, type: "game", title: "Typing Test", src: "Games/typing-game/index.html" },
+      crossyroad: { id: 29, type: "game", title: "Crossy Road", src: "Games/crossy-road-master/index.html" },
+      holeio: { id: 30, type: "game", title: "Hole.io", src: "Games/holeio/index.html" }
     };
     const apps = {
       mp3: { type: "app", title: "MP3 Player", src: "Apps/Mp3Player/index.html" },
@@ -1376,8 +1637,8 @@
       const defaultWindowButton = document.querySelector("#windowButton");
       defaultWindowButton.classList.add("on");
       defaultWindowButton.querySelector("span").textContent = "Exit";
-      if (id === "slope" && location.protocol === "file:") {
-        stage.innerHTML = '<div class="server-message"><div><h2>Slope needs a local server</h2><p>Browsers block Unity build files when this page is opened directly from disk. Run this command in the website folder, then open <strong>http://localhost:8000</strong>.</p><code>python3 -m http.server 8000</code></div></div>';
+      if (["slope", "baldisbasics", "subwaysurfers", "holeio"].includes(id) && location.protocol === "file:") {
+        stage.innerHTML = `<div class="server-message"><div><h2>${item.title} needs a local server</h2><p>Browsers block Unity build files when this page is opened directly from disk. Run this command in the website folder, then open <strong>http://localhost:8000</strong>.</p><code>python3 -m http.server 8000</code></div></div>`;
         player.hidden = false;
         document.body.style.overflow = "hidden";
         return;
