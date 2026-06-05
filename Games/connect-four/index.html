@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connect Four</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07111f;
+      --panel: rgba(13, 25, 44, 0.92);
+      --panel-2: rgba(19, 38, 66, 0.86);
+      --text: #f8fbff;
+      --muted: #91a4bd;
+      --blue: #2563eb;
+      --blue-2: #1d4ed8;
+      --player: #facc15;
+      --ai: #ef4444;
+      --slot: #0b1728;
+      --line: rgba(255, 255, 255, 0.12);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 20% 12%, rgba(37, 99, 235, 0.34), transparent 34%),
+        radial-gradient(circle at 82% 24%, rgba(250, 204, 21, 0.22), transparent 28%),
+        linear-gradient(135deg, #050914, var(--bg));
+      color: var(--text);
+    }
+
+    .game {
+      width: min(920px, calc(100vw - 28px));
+      min-height: min(650px, calc(100vh - 28px));
+      display: grid;
+      grid-template-columns: minmax(430px, 1fr) 240px;
+      gap: 18px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: rgba(5, 13, 26, 0.76);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.44);
+    }
+
+    .board-wrap,
+    .side {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--panel);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .board-wrap {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 14px;
+      padding: 18px;
+      min-width: 0;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 34px);
+      letter-spacing: -0.04em;
+    }
+
+    .status {
+      min-width: 185px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel-2);
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .status strong { color: var(--text); }
+
+    .board-shell {
+      align-self: center;
+      justify-self: center;
+      width: min(100%, 600px);
+    }
+
+    .column-buttons,
+    .board {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+
+    .column-buttons {
+      margin-bottom: 10px;
+    }
+
+    .drop {
+      height: 34px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+    }
+
+    .drop:hover,
+    .drop:focus-visible {
+      background: rgba(250, 204, 21, 0.18);
+      color: var(--text);
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    .drop:disabled {
+      cursor: not-allowed;
+      opacity: 0.42;
+      transform: none;
+    }
+
+    .board {
+      position: relative;
+      padding: 14px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, var(--blue), var(--blue-2));
+      box-shadow:
+        inset 0 2px 0 rgba(255, 255, 255, 0.22),
+        inset 0 -9px 18px rgba(0, 0, 0, 0.18),
+        0 18px 40px rgba(0, 0, 0, 0.32);
+    }
+
+    .cell {
+      aspect-ratio: 1;
+      border: 0;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 38% 32%, rgba(255, 255, 255, 0.13), transparent 22%),
+        var(--slot);
+      box-shadow:
+        inset 0 8px 14px rgba(0, 0, 0, 0.44),
+        inset 0 -2px 4px rgba(255, 255, 255, 0.08);
+    }
+
+    .cell.player {
+      background:
+        radial-gradient(circle at 35% 28%, #fff7b5, transparent 18%),
+        radial-gradient(circle at 50% 52%, #fde047, var(--player));
+      box-shadow: inset 0 -7px 12px rgba(120, 88, 0, 0.38), 0 3px 10px rgba(250, 204, 21, 0.25);
+    }
+
+    .cell.ai {
+      background:
+        radial-gradient(circle at 35% 28%, #fecaca, transparent 18%),
+        radial-gradient(circle at 50% 52%, #f87171, var(--ai));
+      box-shadow: inset 0 -7px 12px rgba(90, 8, 8, 0.4), 0 3px 10px rgba(239, 68, 68, 0.24);
+    }
+
+    .cell.win {
+      outline: 4px solid #ffffff;
+      outline-offset: -5px;
+      filter: saturate(1.18) brightness(1.1);
+    }
+
+    .side {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel-2);
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .score {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .score div {
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.18);
+      text-align: center;
+    }
+
+    .score strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 28px;
+    }
+
+    .legend {
+      display: grid;
+      gap: 9px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .legend span {
+      display: inline-block;
+      width: 13px;
+      height: 13px;
+      margin-right: 7px;
+      border-radius: 50%;
+      vertical-align: -1px;
+    }
+
+    .yellow { background: var(--player); }
+    .red { background: var(--ai); }
+
+    .actions {
+      margin-top: auto;
+      display: grid;
+      gap: 10px;
+    }
+
+    button.primary,
+    button.secondary {
+      min-height: 42px;
+      border: 0;
+      border-radius: 13px;
+      color: white;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      box-shadow: 0 12px 28px rgba(37, 99, 235, 0.24);
+    }
+
+    button.secondary {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 740px) {
+      body { overflow: auto; }
+      .game {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+      .side {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .actions { margin-top: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="game" aria-label="Connect Four">
+    <section class="board-wrap">
+      <div class="topbar">
+        <h1>Connect Four</h1>
+        <div class="status" id="status">Your move: <strong>Yellow</strong></div>
+      </div>
+      <div class="board-shell">
+        <div class="column-buttons" id="columnButtons" aria-label="Choose a column"></div>
+        <div class="board" id="board" aria-label="Connect Four board"></div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div class="card">
+        <h2>Score</h2>
+        <div class="score">
+          <div>Player<strong id="playerScore">0</strong></div>
+          <div>AI<strong id="aiScore">0</strong></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>How To Play</h2>
+        <ul class="legend">
+          <li><span class="yellow"></span>You are yellow.</li>
+          <li><span class="red"></span>The AI is red.</li>
+          <li>Click a column or press <strong>1-7</strong>.</li>
+          <li>First to connect four wins.</li>
+        </ul>
+      </div>
+      <div class="actions">
+        <button class="primary" id="newRound" type="button">New Round</button>
+        <button class="secondary" id="resetScore" type="button">Reset Score</button>
+        <p class="hint">The AI looks for wins, blocks your threats, then picks the strongest center columns.</p>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    const ROWS = 6;
+    const COLS = 7;
+    const EMPTY = 0;
+    const PLAYER = 1;
+    const AI = 2;
+    const centerOrder = [3, 2, 4, 1, 5, 0, 6];
+
+    const boardEl = document.querySelector("#board");
+    const buttonsEl = document.querySelector("#columnButtons");
+    const statusEl = document.querySelector("#status");
+    const playerScoreEl = document.querySelector("#playerScore");
+    const aiScoreEl = document.querySelector("#aiScore");
+    const board = Array.from({ length: ROWS }, () => Array(COLS).fill(EMPTY));
+    let locked = false;
+    let finished = false;
+    let scores = { player: 0, ai: 0 };
+
+    function buildBoard() {
+      buttonsEl.replaceChildren();
+      boardEl.replaceChildren();
+      for (let col = 0; col < COLS; col++) {
+        const button = document.createElement("button");
+        button.className = "drop";
+        button.type = "button";
+        button.textContent = col + 1;
+        button.setAttribute("aria-label", `Drop in column ${col + 1}`);
+        button.addEventListener("click", () => playerMove(col));
+        buttonsEl.append(button);
+      }
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          cell.dataset.row = row;
+          cell.dataset.col = col;
+          boardEl.append(cell);
+        }
+      }
+    }
+
+    function resetBoard() {
+      for (let row = 0; row < ROWS; row++) board[row].fill(EMPTY);
+      locked = false;
+      finished = false;
+      statusEl.innerHTML = 'Your move: <strong>Yellow</strong>';
+      render();
+    }
+
+    function render(winCells = []) {
+      const winSet = new Set(winCells.map(([row, col]) => `${row},${col}`));
+      document.querySelectorAll(".cell").forEach(cell => {
+        const row = Number(cell.dataset.row);
+        const col = Number(cell.dataset.col);
+        cell.className = "cell";
+        if (board[row][col] === PLAYER) cell.classList.add("player");
+        if (board[row][col] === AI) cell.classList.add("ai");
+        if (winSet.has(`${row},${col}`)) cell.classList.add("win");
+      });
+      [...buttonsEl.children].forEach((button, col) => {
+        button.disabled = locked || finished || board[0][col] !== EMPTY;
+      });
+      playerScoreEl.textContent = scores.player;
+      aiScoreEl.textContent = scores.ai;
+    }
+
+    function playerMove(col) {
+      if (locked || finished || !dropPiece(board, col, PLAYER)) return;
+      const result = getGameResult(board);
+      if (handleResult(result)) return;
+      locked = true;
+      statusEl.innerHTML = 'AI thinking: <strong>Red</strong>';
+      render();
+      window.setTimeout(aiMove, 260);
+    }
+
+    function aiMove() {
+      const col = chooseAiColumn();
+      dropPiece(board, col, AI);
+      locked = false;
+      const result = getGameResult(board);
+      if (handleResult(result)) return;
+      statusEl.innerHTML = 'Your move: <strong>Yellow</strong>';
+      render();
+    }
+
+    function dropPiece(target, col, piece) {
+      for (let row = ROWS - 1; row >= 0; row--) {
+        if (target[row][col] === EMPTY) {
+          target[row][col] = piece;
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function availableColumns(target = board) {
+      return centerOrder.filter(col => target[0][col] === EMPTY);
+    }
+
+    function cloneBoard(target) {
+      return target.map(row => row.slice());
+    }
+
+    function chooseAiColumn() {
+      const columns = availableColumns();
+      for (const col of columns) {
+        const test = cloneBoard(board);
+        dropPiece(test, col, AI);
+        if (getGameResult(test).winner === AI) return col;
+      }
+      for (const col of columns) {
+        const test = cloneBoard(board);
+        dropPiece(test, col, PLAYER);
+        if (getGameResult(test).winner === PLAYER) return col;
+      }
+      let bestCol = columns[0];
+      let bestScore = -Infinity;
+      for (const col of columns) {
+        const test = cloneBoard(board);
+        dropPiece(test, col, AI);
+        const score = scoreBoard(test, AI) - scoreBoard(test, PLAYER) * 0.82;
+        if (score > bestScore) {
+          bestScore = score;
+          bestCol = col;
+        }
+      }
+      return bestCol;
+    }
+
+    function scoreBoard(target, piece) {
+      const weights = [0, 1, 8, 48, 10000];
+      let score = 0;
+      for (const windowCells of allWindows(target)) {
+        const mine = windowCells.filter(value => value === piece).length;
+        const other = windowCells.filter(value => value !== EMPTY && value !== piece).length;
+        if (other === 0) score += weights[mine];
+      }
+      for (let row = 0; row < ROWS; row++) {
+        if (target[row][3] === piece) score += 3;
+      }
+      return score;
+    }
+
+    function allWindows(target) {
+      const windows = [];
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col <= COLS - 4; col++) {
+          windows.push([target[row][col], target[row][col + 1], target[row][col + 2], target[row][col + 3]]);
+        }
+      }
+      for (let col = 0; col < COLS; col++) {
+        for (let row = 0; row <= ROWS - 4; row++) {
+          windows.push([target[row][col], target[row + 1][col], target[row + 2][col], target[row + 3][col]]);
+        }
+      }
+      for (let row = 0; row <= ROWS - 4; row++) {
+        for (let col = 0; col <= COLS - 4; col++) {
+          windows.push([target[row][col], target[row + 1][col + 1], target[row + 2][col + 2], target[row + 3][col + 3]]);
+        }
+      }
+      for (let row = 3; row < ROWS; row++) {
+        for (let col = 0; col <= COLS - 4; col++) {
+          windows.push([target[row][col], target[row - 1][col + 1], target[row - 2][col + 2], target[row - 3][col + 3]]);
+        }
+      }
+      return windows;
+    }
+
+    function getGameResult(target) {
+      const directions = [[0, 1], [1, 0], [1, 1], [-1, 1]];
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          const piece = target[row][col];
+          if (piece === EMPTY) continue;
+          for (const [dr, dc] of directions) {
+            const cells = [[row, col]];
+            for (let step = 1; step < 4; step++) {
+              const nextRow = row + dr * step;
+              const nextCol = col + dc * step;
+              if (nextRow < 0 || nextRow >= ROWS || nextCol < 0 || nextCol >= COLS || target[nextRow][nextCol] !== piece) break;
+              cells.push([nextRow, nextCol]);
+            }
+            if (cells.length === 4) return { winner: piece, cells };
+          }
+        }
+      }
+      return { winner: EMPTY, draw: availableColumns(target).length === 0, cells: [] };
+    }
+
+    function handleResult(result) {
+      if (!result.winner && !result.draw) {
+        render();
+        return false;
+      }
+      finished = true;
+      locked = false;
+      if (result.winner === PLAYER) {
+        scores.player += 1;
+        statusEl.innerHTML = '<strong>You win.</strong>';
+      } else if (result.winner === AI) {
+        scores.ai += 1;
+        statusEl.innerHTML = '<strong>AI wins.</strong>';
+      } else {
+        statusEl.innerHTML = '<strong>Draw.</strong>';
+      }
+      render(result.cells);
+      return true;
+    }
+
+    document.querySelector("#newRound").addEventListener("click", resetBoard);
+    document.querySelector("#resetScore").addEventListener("click", () => {
+      scores = { player: 0, ai: 0 };
+      resetBoard();
+    });
+    window.addEventListener("keydown", event => {
+      if (/^[1-7]$/.test(event.key)) playerMove(Number(event.key) - 1);
+      if (event.key.toLowerCase() === "r") resetBoard();
+    });
+
+    buildBoard();
+    resetBoard();
+  </script>
+</body>
+</html>

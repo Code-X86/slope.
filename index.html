@@ -246,6 +246,8 @@
     .game-card[data-id="emulator"] { --card-accent: #facc15; }
     .game-card[data-id="minesweeper"] { --card-accent: #f97316; }
     .game-card[data-id="pacman3d"] { --card-accent: #00d9ff; }
+    .game-card[data-id="connectfour"] { --card-accent: #facc15; }
+    .game-card[data-id="cookieclicker"] { --card-accent: #d97706; }
     .game-card[data-id="mp3"] { --card-accent: #9b7cff; }
     .game-card[data-id="paint"] { --card-accent: #38bdf8; }
     .game-card[data-id="periodic"] { --card-accent: #34d399; }
@@ -776,6 +778,25 @@
 
     .empty.show { display: block; }
 
+    .debug-panel {
+      display: none;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(9, 14, 24, 0.88);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .debug-panel.show { display: block; }
+
+    .debug-panel pre {
+      margin: 0;
+      overflow-x: auto;
+      color: #d7e2f1;
+      font: 13px/1.65 ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      white-space: pre-wrap;
+    }
+
     @media (max-width: 900px) {
       :root { --sidebar: 0px; }
       .sidebar {
@@ -836,7 +857,7 @@
           <h1 id="heading">Game Library</h1>
           <p class="subtitle" id="subtitle">Pick a game and jump in.</p>
         </div>
-        <div class="view-count" id="viewCount">18 games</div>
+        <div class="view-count" id="viewCount">20 games</div>
       </header>
 
       <section class="library-tools" id="gameTools" aria-label="Game filters">
@@ -851,6 +872,7 @@
           <button class="category-button" data-category="puzzle" type="button">Puzzle</button>
           <button class="category-button" data-category="strategy" type="button">Strategy</button>
           <button class="category-button" data-category="card" type="button">Card</button>
+          <button class="category-button" data-category="idle" type="button">Idle</button>
           <button class="category-button" data-category="sandbox" type="button">Sandbox</button>
         </div>
       </section>
@@ -1052,6 +1074,24 @@
           </div>
         </article>
 
+        <article class="game-card" data-id="connectfour" data-type="game" data-category="strategy puzzle" data-game-id="19">
+          <button class="preview image-art launch" data-label="CONNECT 4" type="button" aria-label="Play Connect Four"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Connect Four</span><span class="card-detail">Drop discs against the AI</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Connect Four"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Connect Four"></button>
+          </div>
+        </article>
+
+        <article class="game-card" data-id="cookieclicker" data-type="game" data-category="idle strategy" data-game-id="20">
+          <button class="preview image-art launch" style="--preview-image:url('Games/cookie-clicker/img/perfectCookie.png')" data-label="COOKIE" type="button" aria-label="Play Cookie Clicker"></button>
+          <div class="card-bar">
+            <div class="card-copy"><span class="card-title">Cookie Clicker</span><span class="card-detail">Bake cookies and buy upgrades</span></div>
+            <button class="icon-button favorite" type="button" aria-label="Favorite Cookie Clicker"></button>
+            <button class="icon-button play-button launch" type="button" aria-label="Play Cookie Clicker"></button>
+          </div>
+        </article>
+
         <article class="game-card" data-id="mp3" data-type="app">
           <button class="preview mp3-art launch" type="button" aria-label="Open MP3 Player"></button>
           <div class="card-bar">
@@ -1088,6 +1128,9 @@
       </section>
 
       <div class="empty" id="empty">No favorites yet. Use the star on a game to add one.</div>
+      <section class="debug-panel" id="debugPanel" aria-label="Debug engine output">
+        <pre id="debugText"></pre>
+      </section>
 
       <section class="player" id="player" hidden aria-label="Game player">
         <div class="player-bar">
@@ -1129,7 +1172,9 @@
       doom: { id: 15, type: "game", title: "Doom", src: "Games/doom/index.html" },
       emulator: { id: 16, type: "game", title: "Emulator", src: "Games/emulator/index.html" },
       minesweeper: { id: 17, type: "game", title: "Minesweeper", src: "Games/minesweeper/index.html" },
-      pacman3d: { id: 18, type: "game", title: "Pac-Man 3D", src: "Games/pacman/index.html" }
+      pacman3d: { id: 18, type: "game", title: "Pac-Man 3D", src: "Games/pacman/index.html" },
+      connectfour: { id: 19, type: "game", title: "Connect Four", src: "Games/connect-four/index.html" },
+      cookieclicker: { id: 20, type: "game", title: "Cookie Clicker", src: "Games/cookie-clicker/index.html" }
     };
     const apps = {
       mp3: { type: "app", title: "MP3 Player", src: "Apps/Mp3Player/index.html" },
@@ -1151,11 +1196,14 @@
     const playerTitle = document.querySelector("#playerTitle");
     const gameTools = document.querySelector("#gameTools");
     const gameSearch = document.querySelector("#gameSearch");
+    const debugPanel = document.querySelector("#debugPanel");
+    const debugText = document.querySelector("#debugText");
     const categoryButtons = [...document.querySelectorAll(".category-button")];
     let currentGame = null;
     let activeView = "games";
     let activeCategory = "all";
     let searchTerm = "";
+    let debugBuffer = "";
 
     document.querySelectorAll(".favorite").forEach(button => button.innerHTML = star);
     document.querySelectorAll(".play-button").forEach(button => button.innerHTML = play);
@@ -1195,6 +1243,87 @@
       savePlaytime();
     }
 
+    function getStorageStatus(storage) {
+      try {
+        const key = "__debug_test__";
+        storage.setItem(key, "1");
+        storage.removeItem(key);
+        return "available";
+      } catch (err) {
+        return `blocked (${err.name || "error"})`;
+      }
+    }
+
+    function buildDebugText() {
+      const gameCards = cards.filter(card => card.dataset.type === "game");
+      const appCards = cards.filter(card => card.dataset.type === "app");
+      const categories = [...new Set(gameCards.flatMap(card => (card.dataset.category || "").split(/\s+/).filter(Boolean)))].sort();
+      const time = formatPlaytime(currentPlayMinutes());
+      const nav = navigator;
+      const screenInfo = window.screen;
+      const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
+      return [
+        "DEBUG ENGINE",
+        "",
+        "Site",
+        `URL: ${location.href}`,
+        `Origin: ${location.origin}`,
+        `Protocol: ${location.protocol}`,
+        `Host: ${location.host || "(local file)"}`,
+        `Path: ${location.pathname}`,
+        `Hash: ${location.hash || "(none)"}`,
+        `Online: ${nav.onLine ? "yes" : "no"}`,
+        "",
+        "Library",
+        `Games: ${Object.keys(games).length}`,
+        `Apps: ${Object.keys(apps).length}`,
+        `Cards: ${cards.length}`,
+        `Favorites saved: ${favorites.size}`,
+        `Categories: ${categories.join(", ") || "(none)"}`,
+        `Current view: ${activeView}`,
+        `Current item: ${currentGame || "(none)"}`,
+        `Playtime: ${time.days} days, ${time.hours} hours, ${time.minutes} minutes`,
+        "",
+        "Device",
+        `User agent: ${nav.userAgent}`,
+        `Platform: ${nav.platform || "(unknown)"}`,
+        `Language: ${nav.language || "(unknown)"}`,
+        `CPU threads: ${nav.hardwareConcurrency || "(unknown)"}`,
+        `Device memory: ${nav.deviceMemory ? `${nav.deviceMemory} GB` : "(unknown)"}`,
+        `Touch points: ${nav.maxTouchPoints || 0}`,
+        `Viewport: ${window.innerWidth} x ${window.innerHeight}`,
+        `Screen: ${screenInfo.width} x ${screenInfo.height}`,
+        `Available screen: ${screenInfo.availWidth} x ${screenInfo.availHeight}`,
+        `Pixel ratio: ${window.devicePixelRatio || 1}`,
+        `Color depth: ${screenInfo.colorDepth || "(unknown)"}`,
+        `Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone || "(unknown)"}`,
+        `Local time: ${new Date().toString()}`,
+        "",
+        "Browser Features",
+        `Cookies enabled: ${nav.cookieEnabled ? "yes" : "no"}`,
+        `localStorage: ${getStorageStatus(localStorage)}`,
+        `sessionStorage: ${getStorageStatus(sessionStorage)}`,
+        `Service worker: ${"serviceWorker" in nav ? "supported" : "not supported"}`,
+        `Fullscreen: ${document.fullscreenEnabled ? "supported" : "not supported"}`,
+        `Connection: ${connection ? `${connection.effectiveType || "unknown"} / ${connection.downlink || "?"} Mbps` : "(unknown)"}`,
+        "",
+        "Command",
+        "Type debug123 again from this page to refresh these stats."
+      ].join("\n");
+    }
+
+    function openDebugEngine() {
+      stopPlaytime();
+      player.hidden = true;
+      stage.replaceChildren();
+      currentGame = null;
+      document.body.style.overflow = "";
+      activeView = "debug";
+      debugText.textContent = buildDebugText();
+      updateView();
+      history.replaceState(null, "", "#debug");
+    }
+
     function updateView() {
       let visible = 0;
       cards.forEach(card => {
@@ -1208,6 +1337,7 @@
         const show =
           activeView === "games" ? type === "game" && matchesSearch && matchesCategory :
           activeView === "apps" ? type === "app" :
+          activeView === "debug" ? false :
           isFavorite;
         card.hidden = !show;
         const favoriteButton = card.querySelector(".favorite");
@@ -1217,14 +1347,16 @@
       const copy = {
         games: ["Game Library", "Pick a game and jump in.", "game"],
         apps: ["App Library", "Useful apps for the mini browser.", "app"],
-        favorites: ["Favorites", "Your saved games, ready to launch.", "game"]
+        favorites: ["Favorites", "Your saved games, ready to launch.", "game"],
+        debug: ["Debug Engine", "Device and site stats.", "line"]
       }[activeView];
       document.querySelector("#heading").textContent = copy[0];
       document.querySelector("#subtitle").textContent = copy[1];
-      document.querySelector("#viewCount").textContent = `${visible} ${copy[2]}${visible === 1 ? "" : "s"}`;
+      document.querySelector("#viewCount").textContent = activeView === "debug" ? "debug123" : `${visible} ${copy[2]}${visible === 1 ? "" : "s"}`;
       gameTools.hidden = activeView !== "games";
       document.querySelector("#empty").textContent = activeView === "games" ? "No games match that search or category." : "No favorites yet. Use the star on a game to add one.";
       document.querySelector("#empty").classList.toggle("show", (activeView === "favorites" || activeView === "games") && visible === 0);
+      debugPanel.classList.toggle("show", activeView === "debug");
       document.querySelectorAll(".nav-button").forEach(button => button.classList.toggle("active", button.dataset.view === activeView));
       categoryButtons.forEach(button => button.classList.toggle("active", button.dataset.category === activeCategory));
     }
@@ -1310,6 +1442,7 @@
 
     document.querySelectorAll(".nav-button").forEach(button => button.addEventListener("click", () => {
       activeView = button.dataset.view;
+      if (location.hash === "#debug") history.replaceState(null, "", location.pathname + location.search);
       updateView();
     }));
 
@@ -1322,6 +1455,17 @@
       activeCategory = button.dataset.category;
       updateView();
     }));
+
+    window.addEventListener("keydown", event => {
+      const target = event.target;
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target?.isContentEditable) return;
+      if (event.key.length !== 1) return;
+      debugBuffer = (debugBuffer + event.key.toLowerCase()).slice(-8);
+      if (debugBuffer === "debug123") {
+        debugBuffer = "";
+        openDebugEngine();
+      }
+    });
 
     document.querySelector("#backButton").addEventListener("click", () => {
       stopPlaytime();
@@ -1418,7 +1562,8 @@
     savePlaytime();
     updateView();
     const linkedItem = location.hash.slice(1);
-    if (libraryItems[linkedItem]) launch(linkedItem);
+    if (linkedItem === "debug") openDebugEngine();
+    else if (libraryItems[linkedItem]) launch(linkedItem);
   </script>
 </body>
 </html>
