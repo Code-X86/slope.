@@ -979,9 +979,116 @@
       .tool-button { padding: 9px; }
       .stage { min-height: 0; }
     }
+    /* Popup Modal Styles */
+    .popup-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .popup-overlay[hidden] { display: none; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .popup-content {
+      position: relative;
+      width: min(480px, calc(100% - 32px));
+      padding: 32px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .popup-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(169, 255, 50, 0.15);
+      color: var(--green);
+    }
+
+    .popup-icon svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .popup-title {
+      margin: 0 0 12px;
+      color: var(--text);
+      font-size: 24px;
+      font-weight: 900;
+      text-align: center;
+      letter-spacing: -.03em;
+    }
+
+    .popup-message {
+      margin: 0 0 24px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .popup-button {
+      display: block;
+      width: 100%;
+      padding: 14px 24px;
+      border: 1px solid var(--green);
+      border-radius: 10px;
+      background: rgba(169, 255, 50, 0.1);
+      color: var(--green);
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .popup-button:hover {
+      background: var(--green);
+      color: var(--bg);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(169, 255, 50, 0.4);
+    }
   </style>
 </head>
 <body>
+  <!-- Site Migration Popup -->
+  <div class="popup-overlay" id="migrationPopup">
+    <div class="popup-content">
+      <div class="popup-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 16v-4m0-4h.01"/>
+        </svg>
+      </div>
+      <h2 class="popup-title">We're Moving!</h2>
+      <p class="popup-message">
+        MINIPLAY will be moving to a different site soon. Stay tuned for updates and bookmark the new location when we announce it!
+      </p>
+      <button class="popup-button" id="closePopup">Got it, thanks!</button>
+    </div>
+  </div>
+
   <div class="app">
     <aside class="sidebar">
       <div class="brand">MINI <span>PLAY</span></div>
@@ -1825,6 +1932,21 @@
     const linkedItem = location.hash.slice(1);
     if (linkedItem === "debug") openDebugEngine();
     else if (libraryItems[linkedItem]) launch(linkedItem);
+
+    // Popup close functionality
+    const popup = document.getElementById('migrationPopup');
+    const closeButton = document.getElementById('closePopup');
+    
+    closeButton.addEventListener('click', () => {
+      popup.setAttribute('hidden', '');
+    });
+    
+    // Also close when clicking the overlay background
+    popup.addEventListener('click', (e) => {
+      if (e.target === popup) {
+        popup.setAttribute('hidden', '');
+      }
+    });
   </script>
 </body>
 </html>
